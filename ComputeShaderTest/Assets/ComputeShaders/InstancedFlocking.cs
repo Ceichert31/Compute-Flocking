@@ -1,0 +1,131 @@
+using NUnit.Framework.Constraints;
+using UnityEngine;
+
+public class InstancedFlocking : MonoBehaviour
+{
+    public ComputeShader shader;
+
+    public float rotationSpeed = 1f;
+    public float boidSpeed = 1f;
+    public float neighbourDistance = 1f;
+    public float boidSpeedVariation = 1f;
+    public Mesh boidMesh;
+    public Material boidMaterial;
+    public int boidsCount;
+    public float spawnRadius;
+    public Transform target;
+
+    int kernelHandle;
+
+    ComputeBuffer boidsBuffer;
+
+    Boid[] boidsArray;
+
+    int groupSizeX;
+
+    int numberOfBoids;
+
+    RenderParams renderParams;
+
+    GraphicsBuffer argsBuffer;
+
+    private void Start()
+    {
+        kernelHandle = shader.FindKernel("CSMain");
+        
+        uint x;
+        shader.GetKernelThreadGroupSizes(kernelHandle, out x, out _, out _);
+        groupSizeX = Mathf.CeilToInt((float)boidsCount / (float)x);
+        numberOfBoids = groupSizeX * (int)x;
+
+        InitBoids();
+        InitShader();
+
+        renderParams = new RenderParams(boidMaterial);
+        renderParams.worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);
+    }
+
+    /// <summary>
+    /// Creates a compute buffer 
+    /// </summary>
+    void InitShader()
+    {
+        //Init boid buffer
+        boidsBuffer = new ComputeBuffer(numberOfBoids, 7 * sizeof(float));
+
+        //Cache data on GPU
+        boidsBuffer.SetData(boidsArray);
+
+        //Init graphics buffer
+        argsBuffer = new GraphicsBuffer(
+            GraphicsBuffer.Target.IndirectArguments, 
+            1, 
+            GraphicsBuffer.IndirectDrawIndexedArgs.size);
+
+        //Create data buffer object
+        GraphicsBuffer.IndirectDrawIndexedArgs[] data = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
+
+        //Set indexCountPerInstance to vertex count of boid mesh
+        data[0].indexCountPerInstance = boidMesh.GetIndexCount(0);
+
+        //Set instance count to the number of boids we want
+        data[0].instanceCount = (uint)numberOfBoids;
+
+        //Set buffers data so data is on GPU
+        argsBuffer.SetData(data);
+
+        //Set properties
+        shader.SetFloat("_RotationSpeed", rotationSpeed);
+        shader.SetFloat("_BoidSpeed", boidSpeed);
+        shader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
+        shader.SetVector("_FlockPosition", target.transform.position);
+        shader.SetFloat("_NeighborDistance", neighbourDistance);
+        shader.SetInt("_BoidsCount", numberOfBoids);
+        shader.SetBuffer(this.kernelHandle, "_BoidsBuffer", boidsBuffer);
+    }
+
+    /// <summary>
+    /// Creates an array of boids
+    /// </summary>
+    void InitBoids()
+    {
+        boidsArray = new Boid[numberOfBoids];
+
+        //Populate array with boids
+        for (int i = 0; i < numberOfBoids; ++i)
+        {
+            Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
+            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
+
+            float offset = Random.value * 1000.0f;
+            boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
+        }
+    }
+
+    private void Update()
+    {
+        //Update compute shaders uniform time values
+        shader.SetFloat("_Time", Time.time);
+        shader.SetFloat("_DeltaTime", Time.deltaTime);
+
+        //Dispatch compute shader to GPU
+        shader.Dispatch(this.kernelHandle, groupSizeX, 1, 1);
+
+        //Render updated boids
+        Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
+    }
+}
+
+public struct Boid
+{
+    public Vector3 position;
+    public Vector3 velocity;
+    public float noiseOffset;
+
+    public Boid(Vector3 position, Vector3 velocity, float noiseOffset)
+    {
+        this.position = position;
+        this.velocity = velocity;
+        this.noiseOffset = noiseOffset;
+    }
+}

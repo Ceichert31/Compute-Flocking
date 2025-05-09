@@ -471,14 +471,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shader: {fileID: 7200000, guid: d7b1e61803474fc4a9ae170b63d7c953, type: 3}
-  rotationSpeed: 4
-  boidSpeed: 6
-  neighbourDistance: 2
-  boidSpeedVariation: 0.8
+  rotationSpeed: 8
+  boidSpeed: 10
+  neighbourDistance: 3
+  boidSpeedVariation: 1.5
   boidMesh: {fileID: -5495902117074765545, guid: fcd380ed8bad5c747886b3b77a9d80ed, type: 3}
   boidMaterial: {fileID: 2100000, guid: c2b43bb4cba167244ae33f6a9f3058f1, type: 2}
   boidsCount: 1000
   spawnRadius: 25
+  maximumRadius: 75
   target: {fileID: 1775029686}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

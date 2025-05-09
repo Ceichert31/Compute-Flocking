@@ -21,6 +21,24 @@ float neighborDistance;
 float boidSpeedVariation;
 float3 flockPosition;
 
+//Sphere detection
+float maximumRadius;
+float3 sphereCenter;
+
+//Returns whether or not point is within bounds
+bool InSphere(float3 currentPos)
+{
+    float xValue = pow(currentPos.x - sphereCenter.x, 2);
+    float yValue = pow(currentPos.y - sphereCenter.y, 2);
+    float zValue = pow(currentPos.z - sphereCenter.z, 2);
+
+    if (xValue + yValue + zValue < pow(maximumRadius, 2))
+    {
+        return false;
+    }
+    return true;
+}
+
 [numthreads(256,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -30,6 +48,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 seperation = 0;
     float3 alignment = 0;
     float3 cohesion = flockPosition;
+    float3 correction = 0;
 
     //Default 1 because of self
     uint nearbyCount = 1;
@@ -40,30 +59,34 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         //Pass if boid is self
         if (i == id.x) continue;
 
-        //Cache current boid
-        Boid currentBoid = boidsBuffer[i];
-
         //Check distance between our boid and nearby boid
-        float dist = distance(boid.position, currentBoid.position);
+        float dist = distance(boid.position, boidsBuffer[i].position);
 
         //If too close
         if (dist < neighborDistance)
         {
             //Calculate Seperation
-            float3 offset = boid.position - currentBoid.position;
+            float3 offset = boid.position - boidsBuffer[i].position;
             //Ensure distance isn't zero
             dist = max(dist, 0.000001); 
             //If boid is close, increase seperation vector 
             seperation += offset * (1.0 / dist - 1.0 / neighborDistance);
 
             //Get the sum of each boids direction
-            alignment += currentBoid.velocity;
+            alignment += boidsBuffer[i].velocity;
 
             //Get the sum of each boids position
-            cohesion += currentBoid.position;
+            cohesion += boidsBuffer[i].position;
+
+            //If boid is outside of bounds
+            if (!InSphere(boidsBuffer[i].position))
+            {
+                //Move back towards center of sphere
+                correction = normalize(sphereCenter - boidsBuffer[i].position);
+            }
 
             //Add one to count of nearby boids
-            nearbyCount += 1;
+            nearbyCount++;
         }
     }
 
@@ -75,7 +98,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     cohesion = normalize(cohesion - boid.position);
 
     //Target direction is sum of all 3 values
-    float3 targetDirection = alignment + seperation + cohesion;
+    float3 targetDirection = alignment + seperation + cohesion + correction;
 
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, 0.01);

@@ -31,6 +31,7 @@ public class InstancedFlocking : MonoBehaviour
     public Material boidMaterial;
     public int boidsCount;
     public float spawnRadius;
+    public float maximumRadius;
     public Transform target;
 
     int kernelHandle;
@@ -117,6 +118,9 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("neighborDistance", neighbourDistance);
         shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
         shader.SetVector("flockPosition", target.transform.position);
+
+        shader.SetFloat("maximumRadius", maximumRadius);
+        shader.SetVector("sphereCenter", transform.position);
     }
 
     private void Update()
@@ -147,6 +151,9 @@ public class InstancedFlocking : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.position, maximumRadius);
     }
 }

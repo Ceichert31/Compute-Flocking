@@ -1,6 +1,5 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
-#define GROUP_SIZE 256
 
 struct Boid
 {
@@ -22,7 +21,7 @@ float _NeighbourDistance;
 float _BoidSpeedVariation;
 float3 _FlockPosition;
 
-[numthreads(GROUP_SIZE,1,1)]
+[numthreads(256,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     //Cache boid
@@ -36,32 +35,35 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     uint nearbyCount = 1;
 
     //Check for nearby boids
-    for (uint i = 0; i < (uint)_BoidsCount; i++)
+    for (uint i = 0; i < (uint)_BoidsCount; ++i)
     {
         //Pass if boid is self
         if (i == id.x) continue;
 
+        //Cache current boid
+        Boid currentBoid = _BoidsBuffer[i];
+
         //Check distance between our boid and nearby boid
-        float dist = distance(boid.position, _BoidsBuffer[i].position);
+        float dist = distance(boid.position, currentBoid.position);
 
         //If too close
         if (dist < _NeighbourDistance)
         {
             //Calculate Seperation
-            float3 offset = boid.position - _BoidsBuffer[i].position;
+            float3 offset = boid.position - currentBoid.position;
             //Ensure distance isn't zero
             dist = max(dist, 0.000001); 
             //If boid is close, increase seperation vector 
             seperation += offset * (1.0 / dist - 1.0 / _NeighbourDistance);
 
             //Get the sum of each boids direction
-            alignment += _BoidsBuffer[i].velocity;
+            alignment += currentBoid.velocity;
 
             //Get the sum of each boids position
-            cohesion += _BoidsBuffer[i].position;
+            cohesion += currentBoid.position;
 
             //Add one to count of nearby boids
-            nearbyCount++;
+            nearbyCount += 1;
         }
     }
 

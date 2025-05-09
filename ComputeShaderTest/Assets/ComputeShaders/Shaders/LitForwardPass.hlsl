@@ -17,22 +17,21 @@
 // keep this file in sync with LitGBufferPass.hlsl
 struct Boid
 {
-    float3 position;
-    float3 velocity;
-    float noiseOffset;
+    float3 position; 
+    float3 direction; 
+    float noise_offset;
 };
 
 StructuredBuffer<Boid> boidsBuffer;
 
-float4x4 createMatrix(float3 position, float3 direction, float3 up)
-{
-    float3 axisZ = normalize(direction);
-    float3 axisX = normalize(cross(up, axisZ));
-    float3 axisY = cross(axisZ, axisX);
+float4x4 create_matrix(float3 pos, float3 dir, float3 up) {
+    float3 zaxis = normalize(dir);
+    float3 xaxis = normalize(cross(up, zaxis));
+    float3 yaxis = cross(zaxis, xaxis);
     return float4x4(
-        axisX.x, axisY.x, axisZ.x, position.x,
-        axisX.y, axisY.y, axisZ.y, position.y,
-        axisX.z, axisY.z, axisZ.z, position.z,
+        xaxis.x, yaxis.x, zaxis.x, pos.x,
+        xaxis.y, yaxis.y, zaxis.y, pos.y,
+        xaxis.z, yaxis.z, zaxis.z, pos.z,
         0, 0, 0, 1
     );
 }
@@ -144,9 +143,6 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-    #if defined(USE_APV_PROBE_OCCLUSION)
-    inputData.probeOcclusion = input.probeOcclusion;
-    #endif
     #endif
 }
 
@@ -182,18 +178,16 @@ Varyings LitPassVertex(Attributes input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    //Get boid using instance ID
     Boid boid = boidsBuffer[input.instanceID];
 
-    //Create new boid transformation matrix
-    float4x4 boidMat = createMatrix(boid.position, boid.velocity, float3(0.0, 1.0, 0.0));
+    float4x4 mat = create_matrix(boid.position, boid.direction, float3(0.0, 1.0, 0.0));
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(mul(boidMat, input.positionOS).xyz);
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(mul(mat, input.positionOS).xyz);
 
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
     // also required for per-vertex lighting and SH evaluation
-    VertexNormalInputs normalInput = GetVertexNormalInputs(mul(boidMat, input.normalOS), mul(boidMat, input.tangentOS));
+    VertexNormalInputs normalInput = GetVertexNormalInputs(mul(mat, input.normalOS), mul(mat, input.tangentOS));
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
 

@@ -1,7 +1,9 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class InstancedFlocking : MonoBehaviour
 {
+    [System.Serializable]
     public struct Boid
     {
         public Vector3 position;
@@ -110,6 +112,8 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("_NeighborDistance", neighbourDistance);
         shader.SetInt("_BoidsCount", numberOfBoids);
         shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
+
+        boidMaterial.SetBuffer("_BoidsBuffer", boidsBuffer);
     }
 
     private void Update()

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public class InstancedFlocking : MonoBehaviour
 {
-    [System.Serializable]
     public struct Boid
     {
         public Vector3 position;
@@ -12,8 +11,12 @@ public class InstancedFlocking : MonoBehaviour
 
         public Boid(Vector3 pos, Vector3 vel, float noise)
         {
-            position = pos;
-            velocity = vel;
+            position.x = pos.x;
+            position.y = pos.y;
+            position.z = pos.z;
+            velocity.x = vel.x;
+            velocity.y = vel.y;
+            velocity.z = vel.z;
             noiseOffset = noise;
         }
     }
@@ -105,22 +108,22 @@ public class InstancedFlocking : MonoBehaviour
         argsBuffer.SetData(data);
 
         //Set properties
-        shader.SetFloat("_RotationSpeed", rotationSpeed);
-        shader.SetFloat("_BoidSpeed", boidSpeed);
-        shader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
-        shader.SetVector("_FlockPosition", target.transform.position);
-        shader.SetFloat("_NeighborDistance", neighbourDistance);
-        shader.SetInt("_BoidsCount", numberOfBoids);
-        shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
+        shader.SetBuffer(kernelHandle, "boidsBuffer", boidsBuffer);
+        boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
 
-        boidMaterial.SetBuffer("_BoidsBuffer", boidsBuffer);
+        shader.SetInt("boidsCount", numberOfBoids);
+        shader.SetFloat("rotationSpeed", rotationSpeed);
+        shader.SetFloat("boidSpeed", boidSpeed);
+        shader.SetFloat("neighborDistance", neighbourDistance);
+        shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
+        shader.SetVector("flockPosition", target.transform.position);
     }
 
     private void Update()
     {
         //Update compute shaders uniform time values
-        shader.SetFloat("_Time", Time.time);
-        shader.SetFloat("_DeltaTime", Time.deltaTime);
+        shader.SetFloat("time", Time.time);
+        shader.SetFloat("deltaTime", Time.deltaTime);
 
         //Dispatch compute shader to GPU
         shader.Dispatch(kernelHandle, groupSizeX, 1, 1);

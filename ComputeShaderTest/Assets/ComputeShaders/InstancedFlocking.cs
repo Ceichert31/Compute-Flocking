@@ -1,8 +1,21 @@
-using NUnit.Framework.Constraints;
 using UnityEngine;
 
 public class InstancedFlocking : MonoBehaviour
 {
+    public struct Boid
+    {
+        public Vector3 position;
+        public Vector3 velocity;
+        public float noiseOffset;
+
+        public Boid(Vector3 pos, Vector3 vel, float noise)
+        {
+            position = pos;
+            velocity = vel;
+            noiseOffset = noise;
+        }
+    }
+
     public ComputeShader shader;
 
     public float rotationSpeed = 1f;
@@ -19,7 +32,7 @@ public class InstancedFlocking : MonoBehaviour
 
     ComputeBuffer boidsBuffer;
 
-    Boid[] boidsArray;
+    [SerializeField] Boid[] boidsArray;
 
     int groupSizeX;
 
@@ -32,9 +45,8 @@ public class InstancedFlocking : MonoBehaviour
     private void Start()
     {
         kernelHandle = shader.FindKernel("CSMain");
-        
-        uint x;
-        shader.GetKernelThreadGroupSizes(kernelHandle, out x, out _, out _);
+
+        shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
         groupSizeX = Mathf.CeilToInt((float)boidsCount / (float)x);
         numberOfBoids = groupSizeX * (int)x;
 
@@ -44,7 +56,23 @@ public class InstancedFlocking : MonoBehaviour
         renderParams = new RenderParams(boidMaterial);
         renderParams.worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);
     }
+    /// <summary>
+    /// Creates an array of boids
+    /// </summary>
+    void InitBoids()
+    {
+        boidsArray = new Boid[numberOfBoids];
 
+        //Populate array with boids
+        for (int i = 0; i < numberOfBoids; i++)
+        {
+            Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
+            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
+
+            float offset = Random.value * 1000.0f;
+            boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
+        }
+    }
     /// <summary>
     /// Creates a compute buffer 
     /// </summary>
@@ -81,25 +109,7 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetVector("_FlockPosition", target.transform.position);
         shader.SetFloat("_NeighborDistance", neighbourDistance);
         shader.SetInt("_BoidsCount", numberOfBoids);
-        shader.SetBuffer(this.kernelHandle, "_BoidsBuffer", boidsBuffer);
-    }
-
-    /// <summary>
-    /// Creates an array of boids
-    /// </summary>
-    void InitBoids()
-    {
-        boidsArray = new Boid[numberOfBoids];
-
-        //Populate array with boids
-        for (int i = 0; i < numberOfBoids; ++i)
-        {
-            Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
-
-            float offset = Random.value * 1000.0f;
-            boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
-        }
+        shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
     }
 
     private void Update()
@@ -109,23 +119,27 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("_DeltaTime", Time.deltaTime);
 
         //Dispatch compute shader to GPU
-        shader.Dispatch(this.kernelHandle, groupSizeX, 1, 1);
+        shader.Dispatch(kernelHandle, groupSizeX, 1, 1);
 
         //Render updated boids
         Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
     }
-}
 
-public struct Boid
-{
-    public Vector3 position;
-    public Vector3 velocity;
-    public float noiseOffset;
-
-    public Boid(Vector3 position, Vector3 velocity, float noiseOffset)
+    private void OnDestroy()
     {
-        this.position = position;
-        this.velocity = velocity;
-        this.noiseOffset = noiseOffset;
+        //Clean buffers on destroy
+        if (boidsBuffer != null)
+        {
+            boidsBuffer.Dispose();
+        }
+        if (argsBuffer != null)
+        {
+            argsBuffer.Dispose();
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.DrawWireSphere(transform.position, spawnRadius);
     }
 }

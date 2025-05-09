@@ -188,7 +188,7 @@ Varyings LitPassVertex(Attributes input)
     //Create new boid transformation matrix
     float4x4 boidMat = createMatrix(boid.position, boid.velocity, float3(0.0, 1.0, 0.0));
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(mul(boidMat, input.positionOS.xyz));
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(mul(boidMat, input.positionOS).xyz);
 
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation

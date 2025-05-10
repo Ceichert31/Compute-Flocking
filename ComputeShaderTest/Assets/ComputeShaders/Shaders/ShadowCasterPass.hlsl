@@ -51,7 +51,7 @@ struct Attributes
     float4 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
     float2 texcoord     : TEXCOORD0;
-    uint instanceID : SV_InstanceID;
+    uint instanceID     : SV_InstanceID;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 

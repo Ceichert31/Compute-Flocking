@@ -26,7 +26,7 @@ float maximumRadius;
 float3 sphereCenter;
 
 //Returns whether or not point is within bounds
-bool InSphere(float3 currentPos)
+bool InsideBounds(float3 currentPos)
 {
     float xValue = pow(currentPos.x - sphereCenter.x, 2);
     float yValue = pow(currentPos.y - sphereCenter.y, 2);
@@ -34,9 +34,9 @@ bool InSphere(float3 currentPos)
 
     if (xValue + yValue + zValue < pow(maximumRadius, 2))
     {
-        return false;
+        return true;
     }
-    return true;
+    return false;
 }
 
 [numthreads(256,1,1)]
@@ -78,15 +78,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             //Get the sum of each boids position
             cohesion += boidsBuffer[i].position;
 
-            //If boid is outside of bounds
-            if (!InSphere(boidsBuffer[i].position))
-            {
-                //Move back towards center of sphere
-                correction = normalize(sphereCenter - boidsBuffer[i].position);
-            }
-
             //Add one to count of nearby boids
-            nearbyCount++;
+            nearbyCount += 1;
         }
     }
 
@@ -96,6 +89,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     alignment *= avg;
     cohesion *= avg;
     cohesion = normalize(cohesion - boid.position);
+
+    //If boid is outside of bounds
+    if (!InsideBounds(boid.position))
+    {
+        //Move back towards center of sphere
+        correction = normalize(sphereCenter - boid.position);
+    }
 
     //Target direction is sum of all 3 values
     float3 targetDirection = alignment + seperation + cohesion + correction;

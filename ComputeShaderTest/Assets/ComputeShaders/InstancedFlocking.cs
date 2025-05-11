@@ -104,10 +104,11 @@ public class InstancedFlocking : MonoBehaviour
         //Set buffers data so data is on GPU
         argsBuffer.SetData(data);
 
-        //Set properties
+        //Set buffer properties
         shader.SetBuffer(kernelHandle, "boidsBuffer", boidsBuffer);
         boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
 
+        //Set boid properties
         shader.SetInt("boidsCount", numberOfBoids);
         shader.SetFloat("rotationSpeed", rotationSpeed);
         shader.SetFloat("boidSpeed", boidSpeed);
@@ -115,6 +116,7 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
         shader.SetVector("flockPosition", target.transform.position);
 
+        //Set boundry properties
         shader.SetFloat("maximumRadius", maximumRadius);
         shader.SetVector("sphereCenter", transform.position);
     }
@@ -138,13 +140,12 @@ public class InstancedFlocking : MonoBehaviour
         boidsBuffer?.Dispose();
         argsBuffer?.Dispose();
     }
-}
 
-//private void OnDrawGizmosSelected()
-//{
-    //Gizmos.color = Color.red;
-    //Gizmos.DrawWireSphere(transform.position, spawnRadius);
-    //Gizmos.color = Color.blue;
-    //Gizmos.DrawWireSphere(transform.position, maximumRadius);
-//}
-//}
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.position, spawnRadius);
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireSphere(transform.position, maximumRadius);
+    }
+}

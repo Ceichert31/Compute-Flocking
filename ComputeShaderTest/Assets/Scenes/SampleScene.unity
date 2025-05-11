@@ -545,7 +545,7 @@ Transform:
   m_GameObject: {fileID: 1775029685}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -12.6, z: 0}
+  m_LocalPosition: {x: 0, y: 88.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -571,8 +571,8 @@ MonoBehaviour:
   boidMesh: {fileID: -5597002278806442958, guid: 7dfa7f848db01384ab90a891b1c3c165, type: 3}
   boidMaterial: {fileID: 2100000, guid: 8b1f3efd4dcb0104fb9a38aed9d6058d, type: 2}
   boidsCount: 5000
-  spawnRadius: 109.1
-  maximumRadius: 176.4
+  spawnRadius: 209.7
+  maximumRadius: 257.1
   target: {fileID: 1775029686}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

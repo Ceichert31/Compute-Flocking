@@ -11,12 +11,8 @@ public class InstancedFlocking : MonoBehaviour
 
         public Boid(Vector3 pos, Vector3 vel, float noise)
         {
-            position.x = pos.x;
-            position.y = pos.y;
-            position.z = pos.z;
-            velocity.x = vel.x;
-            velocity.y = vel.y;
-            velocity.z = vel.z;
+            position = pos;
+            velocity = vel;
             noiseOffset = noise;
         }
     }
@@ -38,7 +34,7 @@ public class InstancedFlocking : MonoBehaviour
 
     ComputeBuffer boidsBuffer;
 
-    [SerializeField] Boid[] boidsArray;
+    Boid[] boidsArray;
 
     int groupSizeX;
 
@@ -48,7 +44,7 @@ public class InstancedFlocking : MonoBehaviour
 
     GraphicsBuffer argsBuffer;
 
-    private void Start()
+    private void Awake()
     {
         kernelHandle = shader.FindKernel("CSMain");
 
@@ -73,7 +69,7 @@ public class InstancedFlocking : MonoBehaviour
         for (int i = 0; i < numberOfBoids; i++)
         {
             Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
+            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 1.0f);
 
             float offset = Random.value * 1000.0f;
             boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
@@ -92,8 +88,8 @@ public class InstancedFlocking : MonoBehaviour
 
         //Init graphics buffer
         argsBuffer = new GraphicsBuffer(
-            GraphicsBuffer.Target.IndirectArguments, 
-            1, 
+            GraphicsBuffer.Target.IndirectArguments,
+            1,
             GraphicsBuffer.IndirectDrawIndexedArgs.size);
 
         //Create data buffer object
@@ -139,21 +135,16 @@ public class InstancedFlocking : MonoBehaviour
     private void OnDestroy()
     {
         //Clean buffers on destroy
-        if (boidsBuffer != null)
-        {
-            boidsBuffer.Dispose();
-        }
-        if (argsBuffer != null)
-        {
-            argsBuffer.Dispose();
-        }
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, maximumRadius);
+        boidsBuffer?.Dispose();
+        argsBuffer?.Dispose();
     }
 }
+
+//private void OnDrawGizmosSelected()
+//{
+    //Gizmos.color = Color.red;
+    //Gizmos.DrawWireSphere(transform.position, spawnRadius);
+    //Gizmos.color = Color.blue;
+    //Gizmos.DrawWireSphere(transform.position, maximumRadius);
+//}
+//}

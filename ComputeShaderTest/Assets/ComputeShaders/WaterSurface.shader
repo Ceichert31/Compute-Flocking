@@ -33,8 +33,6 @@ Shader "Custom/WaterSurface"
             float _Speed;
             float _NormalStrength;
 
-            half4 _Color;
-
             // The structure definition defines which variables it contains.
             // This example uses the VertexIn structure as an input structure in
             // the VertexIn shader.
@@ -61,18 +59,19 @@ Shader "Custom/WaterSurface"
                 VertexOut OUT;
 
                 //Apply values to texture coords
-                //float2 noiseUV = float2( + _Time * _Speed) * _Scale;
+                float2 noiseUV = float2(IN.uv.xy + _Time * _Speed) * _Scale;
 
                 //Get noise value from noise texture
-                float noiseValue = tex2Dlod(_NoiseTex, float4(IN.uv.xy, 0, 0));
+                float noiseValue = tex2Dlod(_NoiseTex, float4(noiseUV, 0, 0)).x * _Amplitude;
 
                 //Apply to sin wave
-                IN.positionOS.x += cos(_Time * _Speed * noiseValue) * _Amplitude;
-                IN.positionOS.y += sin(_Time * _Speed * noiseValue) * _Amplitude;
+                IN.positionOS = IN.positionOS + float4(0, sin(_Time * noiseValue), 0, 0); 
 
                 //Transform from object space to homogenous space
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.uv = IN.uv;
+                OUT.uv = noiseUV;
+
+
 
                 return OUT;
             }
@@ -80,6 +79,7 @@ Shader "Custom/WaterSurface"
             // The fragment shader definition.            
             half4 frag(VertexOut i) : SV_Target
             {
+                
                 
                 return _Color;
             }

@@ -20,9 +20,13 @@ struct Boid
     float3 position; 
     float3 direction; 
     float noise_offset;
+    float frame;
+	float3 padding;
 };
 
 StructuredBuffer<Boid> boidsBuffer;
+StructuredBuffer<float4> vertexAnimation; 
+int numberOfFrames;
 
 float4x4 create_matrix(float3 pos, float3 dir, float3 up) {
     float3 zaxis = normalize(dir);
@@ -45,6 +49,7 @@ struct Attributes
     float2 staticLightmapUV   : TEXCOORD1;
     float2 dynamicLightmapUV  : TEXCOORD2;
     uint instanceID : SV_InstanceID;
+    uint vertexID : SV_VertexID;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -179,6 +184,25 @@ Varyings LitPassVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     Boid boid = boidsBuffer[input.instanceID];
+
+    //Logic for frame interpolation
+    #ifdef FRAME_INTERPOLATION
+        //Increase frame
+        uint next = boid.frame + 1;
+
+        //Reset clause
+        if (next >= numberOfFrames) 
+            next = 0;
+
+        //Amount to lerp by
+        float frameInterpolation = frac(boidsBuffer[input.instanceID].frame);
+        
+        //Lerp between current frame and next frame
+        input.positionOS.xyz = lerp(vertexAnimation[input.vertexID * numberOfFrames + boid.frame],
+        vertexAnimation[input.vertexID * numberOfFrames + next], frameInterpolation);
+    #else
+        input.positionOS.xyz = vertexAnimation[input.vertexID * numberOfFrames + boid.frame];
+    #endif
 
     float4x4 mat = create_matrix(boid.position, boid.direction, float3(0.0, 1.0, 0.0));
 

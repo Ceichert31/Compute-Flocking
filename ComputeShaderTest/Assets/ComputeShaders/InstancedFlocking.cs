@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor;
 
 public class InstancedFlocking : MonoBehaviour
 {
@@ -9,30 +10,52 @@ public class InstancedFlocking : MonoBehaviour
         public Vector3 velocity;
         public float noiseOffset;
 
+        //Animation
+        public float frame;
+        public Vector3 padding;
+
         public Boid(Vector3 pos, Vector3 vel, float noise)
         {
             position = pos;
             velocity = vel;
             noiseOffset = noise;
+            frame = 0;
+            padding.x = 0; padding.y = padding.z = 0;
         }
     }
 
+    [Header("Boid References")]
     public ComputeShader shader;
+    public Mesh boidMesh;
+    public Material boidMaterial;
+    public Transform target;
 
+    [Header("Boid Values")]
     public float rotationSpeed = 1f;
     public float boidSpeed = 1f;
     public float neighbourDistance = 1f;
     public float boidSpeedVariation = 1f;
-    public Mesh boidMesh;
-    public Material boidMaterial;
     public int boidsCount;
     public float spawnRadius;
     public float maximumRadius;
-    public Transform target;
+
+    //Animator variables
+    [Header("Animator References")]
+    public GameObject boidObject;
+    [Tooltip("Animation we want to use")]
+    public AnimationClip animationClip;
+    private Animator animator;
+    private SkinnedMeshRenderer boidSMR;
+
+    [Header("Animator Values")]
+    public float boidFrameSpeed = 10f;
+    public bool frameInterpolation = true;
+    public int numberOfFrames;
 
     int kernelHandle;
 
     ComputeBuffer boidsBuffer;
+    ComputeBuffer vertexAnimationBuffer;
 
     Boid[] boidsArray;
 
@@ -49,10 +72,11 @@ public class InstancedFlocking : MonoBehaviour
         kernelHandle = shader.FindKernel("CSMain");
 
         shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
-        groupSizeX = Mathf.CeilToInt((float)boidsCount / (float)x);
+        groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
         numberOfBoids = groupSizeX * (int)x;
 
         InitBoids();
+        GenerateSkinnedAnimationForGPUBuffer();
         InitShader();
 
         renderParams = new RenderParams(boidMaterial);
@@ -69,7 +93,7 @@ public class InstancedFlocking : MonoBehaviour
         for (int i = 0; i < numberOfBoids; i++)
         {
             Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 1.0f);
+            Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
 
             float offset = Random.value * 1000.0f;
             boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
@@ -119,6 +143,17 @@ public class InstancedFlocking : MonoBehaviour
         //Set boundry properties
         shader.SetFloat("maximumRadius", maximumRadius);
         shader.SetVector("sphereCenter", transform.position);
+
+        //Set animation properties
+        shader.SetInt("numberOfFrames", numberOfFrames);
+        boidMaterial.SetInt("numberOfFrames", numberOfFrames);
+        shader.SetFloat("boidFrameSpeed", boidFrameSpeed);
+
+        //Enabling smooth interpolation between frames in litfowardshader
+        if (frameInterpolation && !boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
+            boidMaterial.EnableKeyword("FRAME_INTERPOLATION");
+        if (!frameInterpolation && boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
+            boidMaterial.DisableKeyword("FRAME_INTERPOLATION");
     }
 
     private void Update()
@@ -133,12 +168,76 @@ public class InstancedFlocking : MonoBehaviour
         //Render updated boids
         Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
     }
+    private void GenerateSkinnedAnimationForGPUBuffer()
+    {
+        //Get skinned mesh renderer from prefab
+        boidSMR = boidObject.GetComponentInChildren<SkinnedMeshRenderer>();
+
+        //Get starting mesh
+        boidMesh = boidSMR.sharedMesh;
+
+        //Get animator from prefab
+        animator = boidObject.GetComponent<Animator>();
+
+        //Set animation we want to use to first layer in animator
+        int iLayer = 0;
+
+        AnimatorStateInfo aniStateInfo = animator.GetCurrentAnimatorStateInfo(iLayer);
+
+        Mesh bakedMesh = new Mesh();
+        float sampleTime = 0;
+
+        //Calculate the number of frames in the animation
+        //We use closest power of two because we will be using this value often
+        numberOfFrames = Mathf.ClosestPowerOfTwo((int)(animationClip.frameRate * animationClip.length));
+
+        //Calculate time per frame
+        float perFrameTime = animationClip.length / numberOfFrames;
+        int vertexCount = boidSMR.sharedMesh.vertexCount;
+
+        //Generate new compute buffer
+        vertexAnimationBuffer = new ComputeBuffer(vertexCount * numberOfFrames, 16);
+
+        //Create a new array of vector fours to store vertex data
+        Vector4[] vertexAnimationData = new Vector4[vertexCount * numberOfFrames];
+        
+        //Cache vertex positions of each frame
+        for (int i = 0; i < numberOfFrames; ++i)
+        {
+            //Play animation
+            animator.Play(aniStateInfo.shortNameHash, iLayer, sampleTime);
+
+            //Load next frame
+            animator.Update(0.0f);
+
+            //Bake mesh with new frame
+            boidSMR.BakeMesh(bakedMesh);
+
+            //Update verticies
+            for (int j = 0; j < vertexCount; ++j)
+            {
+                Vector4 vertex = bakedMesh.vertices[j];
+                vertex.w = 1;
+                vertexAnimationData[(j * numberOfFrames) + i] = vertex;
+            }
+            //Increase sample time to update to next frame
+            sampleTime += perFrameTime;
+        }
+
+        //Send data to GPU
+        vertexAnimationBuffer.SetData(vertexAnimationData);
+        boidMaterial.SetBuffer("vertexAnimation", vertexAnimationBuffer);
+
+        //Disable object
+        boidObject.SetActive(false);
+    }
 
     private void OnDestroy()
     {
         //Clean buffers on destroy
         boidsBuffer?.Dispose();
         argsBuffer?.Dispose();
+        vertexAnimationBuffer?.Dispose();
     }
 
     private void OnDrawGizmosSelected()

@@ -6,6 +6,8 @@ struct Boid
     float3 position;
     float3 velocity;
     float noiseOffset;
+    float frame;
+	float3 padding;
 };
 
 //Time values
@@ -20,6 +22,10 @@ float boidSpeed;
 float neighborDistance;
 float boidSpeedVariation;
 float3 flockPosition;
+
+//Animation values
+float boidFrameSpeed;
+int numberOfFrames;
 
 //Sphere detection
 float maximumRadius;
@@ -39,6 +45,26 @@ bool InsideBounds(float3 currentPos)
     return false;
 }
 
+float hash( float n )
+{
+	return frac(sin(n)*43758.5453);
+}
+
+// The noise function returns a value in the range -1.0f -> 1.0f
+float noise1( float3 x )
+{
+	float3 p = floor(x);
+	float3 f = frac(x);
+
+	f       = f*f*(3.0-2.0*f);
+	float n = p.x + p.y*57.0 + 113.0*p.z;
+
+	return lerp(lerp(lerp( hash(n+0.0), hash(n+1.0),f.x),
+					lerp( hash(n+57.0), hash(n+58.0),f.x),f.y),
+				lerp(lerp( hash(n+113.0), hash(n+114.0),f.x),
+					lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
+}
+
 [numthreads(256,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
@@ -49,6 +75,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 alignment = 0;
     float3 cohesion = flockPosition;
     float3 correction = 0;
+
+    float noise = clamp(noise1(time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
+    float velocity = boidSpeed * (1.0 + noise * boidSpeedVariation);
 
     //Default 1 because of self
     uint nearbyCount = 1;
@@ -104,7 +133,16 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, 0.01);
 
     //Apply force
-    boid.position += (boid.velocity * boidSpeed * deltaTime);
+    boid.position += (boid.velocity * velocity * deltaTime);
+
+    //Update animation
+    boid.frame = boid.frame + velocity * deltaTime * boidFrameSpeed;
+    
+    //If reaching end of frames, reset
+    if (boid.frame >= numberOfFrames)
+    {
+        boid.frame -= numberOfFrames;
+    }
 
     //Apply updates back to buffer
     boidsBuffer[id.x] = boid;

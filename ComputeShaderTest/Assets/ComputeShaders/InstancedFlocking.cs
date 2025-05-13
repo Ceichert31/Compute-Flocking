@@ -50,7 +50,7 @@ public class InstancedFlocking : MonoBehaviour
     [Header("Animator Values")]
     public float boidFrameSpeed = 10f;
     public bool frameInterpolation = true;
-    public int numberOfFrames;
+    int numberOfFrames;
 
     int kernelHandle;
 
@@ -66,6 +66,8 @@ public class InstancedFlocking : MonoBehaviour
     RenderParams renderParams;
 
     GraphicsBuffer argsBuffer;
+
+    const int STRIDE = 11;
 
     private void Awake()
     {
@@ -105,7 +107,7 @@ public class InstancedFlocking : MonoBehaviour
     void InitShader()
     {
         //Init boid buffer
-        boidsBuffer = new ComputeBuffer(numberOfBoids, 7 * sizeof(float));
+        boidsBuffer = new ComputeBuffer(numberOfBoids, STRIDE * sizeof(float));
 
         //Cache data on GPU
         boidsBuffer.SetData(boidsArray);

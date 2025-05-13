@@ -6,18 +6,18 @@ TerrainLayer:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Sand
-  m_DiffuseTexture: {fileID: 2800000, guid: cae5bf455aca4494c84c0b11f2b7033f, type: 3}
-  m_NormalMapTexture: {fileID: 2800000, guid: 65e9c10fee173044e92cd1640208c01b, type: 3}
+  m_Name: CoastalSand
+  m_DiffuseTexture: {fileID: 2800000, guid: 4f49ad25708d9db41a249b8e803dcb63, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: ac99242fd4aa21f4aaa590ef4748a037, type: 3}
   m_MaskMapTexture: {fileID: 0}
-  m_TileSize: {x: 50, y: 50}
-  m_TileOffset: {x: 0, y: 0}
+  m_TileSize: {x: 54.87, y: 45}
+  m_TileOffset: {x: 15.17, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
-  m_Metallic: 0
+  m_Metallic: 0.106
   m_Smoothness: 0
   m_NormalScale: 1
   m_DiffuseRemapMin: {x: 0, y: 0, z: 0, w: 0}
-  m_DiffuseRemapMax: {x: 0.5188679, y: 0.5188679, z: 0.5188679, w: 1}
+  m_DiffuseRemapMax: {x: 1, y: 1, z: 1, w: 1}
   m_MaskMapRemapMin: {x: 0, y: 0, z: 0, w: 0}
   m_MaskMapRemapMax: {x: 1, y: 1, z: 1, w: 1}
   m_SmoothnessSource: 1

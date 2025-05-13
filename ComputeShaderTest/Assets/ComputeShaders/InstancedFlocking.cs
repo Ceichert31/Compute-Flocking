@@ -29,6 +29,7 @@ public class InstancedFlocking : MonoBehaviour
     public Mesh boidMesh;
     public Material boidMaterial;
     public Transform target;
+    public Transform groundPosition;
 
     [Header("Boid Values")]
     public float rotationSpeed = 1f;
@@ -141,6 +142,7 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("neighborDistance", neighbourDistance);
         shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
         shader.SetVector("flockPosition", target.transform.position);
+        shader.SetVector("groundPosition", groundPosition.position);
 
         //Set boundry properties
         shader.SetFloat("maximumRadius", maximumRadius);

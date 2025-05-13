@@ -22,6 +22,7 @@ float boidSpeed;
 float neighborDistance;
 float boidSpeedVariation;
 float3 flockPosition;
+float3 groundPosition;
 
 //Animation values
 float boidFrameSpeed;
@@ -75,6 +76,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 alignment = 0;
     float3 cohesion = flockPosition;
     float3 correction = 0;
+    float3 groundAvoidance = 0; 
 
     float noise = clamp(noise1(time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
     float velocity = boidSpeed * (1.0 + noise * boidSpeedVariation);
@@ -87,6 +89,15 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     {
         //Pass if boid is self
         if (i == id.x) continue;
+
+        // //Calculate distance to ground
+        // float groundDist = distance(boid.position.y, groundPosition.y);
+
+        // if (groundDist < neighborDistance)
+        // {
+        //     float3 groundOffset = boid.position - groundPosition;
+        //     groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / neighborDistance);
+        // }
 
         //Check distance between our boid and nearby boid
         float dist = distance(boid.position, boidsBuffer[i].position);
@@ -127,7 +138,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }
 
     //Target direction is sum of all 3 values
-    float3 targetDirection = alignment + seperation + cohesion + correction;
+    float3 targetDirection = alignment + seperation + cohesion + correction + groundAvoidance;
 
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, 0.01);

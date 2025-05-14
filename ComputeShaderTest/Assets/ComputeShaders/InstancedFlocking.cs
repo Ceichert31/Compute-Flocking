@@ -29,12 +29,13 @@ public class InstancedFlocking : MonoBehaviour
     public Mesh boidMesh;
     public Material boidMaterial;
     public Transform target;
-    public Transform groundPosition;
+    [SerializeField] Terrain terrain;
 
     [Header("Boid Values")]
     public float rotationSpeed = 1f;
     public float boidSpeed = 1f;
     public float neighbourDistance = 1f;
+    public float terrainDistance = 3f;
     public float boidSpeedVariation = 1f;
     public int boidsCount;
     public float spawnRadius;
@@ -140,9 +141,9 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("rotationSpeed", rotationSpeed);
         shader.SetFloat("boidSpeed", boidSpeed);
         shader.SetFloat("neighborDistance", neighbourDistance);
+        shader.SetFloat("terrainDistance", terrainDistance);
         shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
         shader.SetVector("flockPosition", target.transform.position);
-        shader.SetVector("groundPosition", groundPosition.position);
 
         //Set boundry properties
         shader.SetFloat("maximumRadius", maximumRadius);
@@ -165,6 +166,18 @@ public class InstancedFlocking : MonoBehaviour
         //Update compute shaders uniform time values
         shader.SetFloat("time", Time.time);
         shader.SetFloat("deltaTime", Time.deltaTime);
+
+        //Is this really a good idea?
+        //Updates boids array
+        boidsBuffer.GetData(boidsArray);
+
+        //Check terrain distance with sample point
+        foreach (Boid boid in boidsArray)
+        {
+            float terrainHeight = terrain.SampleHeight(boid.position);
+            //send terrain distance to compute shader
+            shader.SetFloat("terrainHeight", terrainHeight);
+        }
 
         //Dispatch compute shader to GPU
         shader.Dispatch(kernelHandle, groupSizeX, 1, 1);

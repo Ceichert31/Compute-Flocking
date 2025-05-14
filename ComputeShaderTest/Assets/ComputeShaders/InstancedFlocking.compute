@@ -20,9 +20,9 @@ int boidsCount;
 float rotationSpeed;
 float boidSpeed;
 float neighborDistance;
+float terrainDistance;
 float boidSpeedVariation;
 float3 flockPosition;
-float3 groundPosition;
 
 //Animation values
 float boidFrameSpeed;
@@ -31,6 +31,9 @@ int numberOfFrames;
 //Sphere detection
 float maximumRadius;
 float3 sphereCenter;
+
+//Terrain detection
+float terrainHeight;
 
 //Returns whether or not point is within bounds
 bool InsideBounds(float3 currentPos)
@@ -90,14 +93,15 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         //Pass if boid is self
         if (i == id.x) continue;
 
-        // //Calculate distance to ground
-        // float groundDist = distance(boid.position.y, groundPosition.y);
+        //Calculate distance to ground
+        float groundDist = distance(boid.position.y, terrainHeight);
 
-        // if (groundDist < neighborDistance)
-        // {
-        //     float3 groundOffset = boid.position - groundPosition;
-        //     groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / neighborDistance);
-        // }
+        //Check if it is within terrain distance
+        if (groundDist < terrainDistance)
+        {
+            float3 groundOffset = boid.position - float3(boid.position.x, terrainHeight, boid.position.z);
+            groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / neighborDistance);
+        }
 
         //Check distance between our boid and nearby boid
         float dist = distance(boid.position, boidsBuffer[i].position);

@@ -16,6 +16,7 @@ float deltaTime;
 
 //Boid values
 RWStructuredBuffer<Boid> boidsBuffer;
+RWTexture2D<float4> heightMap;
 int boidsCount;
 float rotationSpeed;
 float boidSpeed;

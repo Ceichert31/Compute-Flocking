@@ -30,6 +30,7 @@ public class InstancedFlocking : MonoBehaviour
     public Material boidMaterial;
     public Transform target;
     [SerializeField] Terrain terrain;
+    public Texture2D heightMap;
 
     [Header("Boid Values")]
     public float rotationSpeed = 1f;
@@ -136,6 +137,8 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetBuffer(kernelHandle, "boidsBuffer", boidsBuffer);
         boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
 
+        shader.SetTexture(kernelHandle, "heightMap", heightMap);
+
         //Set boid properties
         shader.SetInt("boidsCount", numberOfBoids);
         shader.SetFloat("rotationSpeed", rotationSpeed);
@@ -166,18 +169,6 @@ public class InstancedFlocking : MonoBehaviour
         //Update compute shaders uniform time values
         shader.SetFloat("time", Time.time);
         shader.SetFloat("deltaTime", Time.deltaTime);
-
-        //Is this really a good idea?
-        //Updates boids array
-        boidsBuffer.GetData(boidsArray);
-
-        //Check terrain distance with sample point
-        foreach (Boid boid in boidsArray)
-        {
-            float terrainHeight = terrain.SampleHeight(boid.position);
-            //send terrain distance to compute shader
-            shader.SetFloat("terrainHeight", terrainHeight);
-        }
 
         //Dispatch compute shader to GPU
         shader.Dispatch(kernelHandle, groupSizeX, 1, 1);

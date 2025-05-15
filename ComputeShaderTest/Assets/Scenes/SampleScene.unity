@@ -879,7 +879,8 @@ MonoBehaviour:
   boidMesh: {fileID: -5597002278806442958, guid: 7920f1fc1b18ad1469f156913653e076, type: 3}
   boidMaterial: {fileID: 2100000, guid: 8b1f3efd4dcb0104fb9a38aed9d6058d, type: 2}
   target: {fileID: 1775029686}
-  groundPosition: {fileID: 0}
+  terrain: {fileID: 242030105}
+  heightMap: {fileID: 2800000, guid: aedbf2da17b921c41ba587029790e0a8, type: 3}
   rotationSpeed: 6
   boidSpeed: 10
   neighbourDistance: 30
@@ -892,7 +893,6 @@ MonoBehaviour:
   animationClip: {fileID: 7400000, guid: 3c0f06227faaaf24b9d7495215f892e8, type: 2}
   boidFrameSpeed: 7
   frameInterpolation: 1
-  terrain: {fileID: 242030105}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -24,6 +24,39 @@ public class InstancedFlocking : MonoBehaviour
         }
     }
 
+    [Header("Boid General Settings")]
+    public int boidsCount;
+
+    [Header("Boid Movement Values")]
+    public float rotationSpeed = 1f;
+    public float boidSpeed = 1f;
+    public float boidSpeedVariation = 1f;
+
+    [Header("Boid Avoidance Values")]
+    public float neighbourDistance = 1f;
+    public float avoidanceDistance = 3f;
+
+    [Header("Boid Weights")]
+    [Range(0, 1000f)]
+    public float alignmentWeight;
+    [Range(0, 1000f)]
+    public float cohesionWeight;
+    [Range(0, 1000f)]
+    public float seperationWeight;
+    [Range(0, 1000f)]
+    public float correctionWeight;
+    [Range(0, 1000f)]
+    public float groundAvoidanceWeight;
+
+    [Header("Boundry Values")]
+    public float spawnRadius;
+    public float maximumRadius;
+
+    [Header("Animator Values")]
+    public float boidFrameSpeed = 10f;
+    public bool frameInterpolation = true;
+    int numberOfFrames;
+
     [Header("Boid References")]
     public ComputeShader shader;
     public Mesh boidMesh;
@@ -31,28 +64,12 @@ public class InstancedFlocking : MonoBehaviour
     public Transform target;
     [SerializeField] Terrain terrain;
 
-    [Header("Boid Values")]
-    public float rotationSpeed = 1f;
-    public float boidSpeed = 1f;
-    public float neighbourDistance = 1f;
-    public float terrainDistance = 3f;
-    public float boidSpeedVariation = 1f;
-    public int boidsCount;
-    public float spawnRadius;
-    public float maximumRadius;
-
-    //Animator variables
     [Header("Animator References")]
     public GameObject boidObject;
     [Tooltip("Animation we want to use")]
     public AnimationClip animationClip;
     private Animator animator;
     private SkinnedMeshRenderer boidSMR;
-
-    [Header("Animator Values")]
-    public float boidFrameSpeed = 10f;
-    public bool frameInterpolation = true;
-    int numberOfFrames;
 
     int kernelHandle;
 
@@ -70,6 +87,33 @@ public class InstancedFlocking : MonoBehaviour
     GraphicsBuffer argsBuffer;
 
     const int STRIDE = 11;
+
+    [System.Serializable]
+    public struct DebugData
+    {
+        public Vector3 position;
+        public Vector3 velocity;
+        public float sampledTerrainHeight;
+        public float groundDistance;
+        public float isAvoiding;
+
+        public DebugData(Vector3 pos)
+        {
+            position = pos;
+            velocity = Vector3.zero;
+            sampledTerrainHeight = 0;
+            groundDistance = 0;
+            isAvoiding = 0;
+        }
+    }
+    const int DEBUG_STRIDE = 9;
+
+    [Header("Debug Settings")]
+    public bool isDebugEnabled;
+    public float debugRayDist = 5.0f;
+    ComputeBuffer debugBuffer;
+    DebugData[] debugArray;
+
 
     private void Awake()
     {
@@ -92,15 +136,25 @@ public class InstancedFlocking : MonoBehaviour
     void InitBoids()
     {
         boidsArray = new Boid[numberOfBoids];
+        debugArray = new DebugData[numberOfBoids];
 
         //Populate array with boids
         for (int i = 0; i < numberOfBoids; i++)
         {
+            //Random boid spawn pos
             Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
+            
+            //Random boid rotation
             Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
 
+            //Random offset
             float offset = Random.value * 1000.0f;
+
+            //Add boid to array
             boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
+
+            //Create new debug object
+            debugArray[i] = new DebugData(Vector3.zero);
         }
     }
     /// <summary>
@@ -147,9 +201,16 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("_RotationSpeed", rotationSpeed);
         shader.SetFloat("_BoidSpeed", boidSpeed);
         shader.SetFloat("_NeighborDistance", neighbourDistance);
-        shader.SetFloat("_TerrainDistance", terrainDistance);
+        shader.SetFloat("_AvoidanceDistance", avoidanceDistance);
         shader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
         shader.SetVector("_FlockPosition", target.transform.position);
+
+        //Set weight properties
+        shader.SetFloat("_AlignmentWeight", alignmentWeight);
+        shader.SetFloat("_CohesionWeight", cohesionWeight);
+        shader.SetFloat("_SeperationWeight", seperationWeight);
+        shader.SetFloat("_AvoidanceWeight", groundAvoidanceWeight);
+        shader.SetFloat("_CorrectionWeight", correctionWeight);
 
         //Set boundry properties
         shader.SetFloat("_MaximumRadius", maximumRadius);
@@ -159,6 +220,12 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetInt("_NumberOfFrames", numberOfFrames);
         boidMaterial.SetInt("numberOfFrames", numberOfFrames);
         shader.SetFloat("_BoidFrameSpeed", boidFrameSpeed);
+
+        //Debug properties
+        debugBuffer = new ComputeBuffer(numberOfBoids, DEBUG_STRIDE * sizeof(float));
+        debugBuffer.SetData(debugArray);
+
+        shader.SetBuffer(kernelHandle, "_DebugBuffer", debugBuffer);
 
         //Enabling smooth interpolation between frames in litfowardshader
         if (frameInterpolation && !boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
@@ -178,6 +245,12 @@ public class InstancedFlocking : MonoBehaviour
 
         //Render updated boids
         Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
+
+        if (!isDebugEnabled) return;
+        //Retrive debug data
+        debugBuffer.GetData(debugArray);
+
+        
     }
     private void GenerateSkinnedAnimationForGPUBuffer()
     {
@@ -249,6 +322,7 @@ public class InstancedFlocking : MonoBehaviour
         boidsBuffer?.Dispose();
         argsBuffer?.Dispose();
         vertexAnimationBuffer?.Dispose();
+        debugBuffer?.Dispose();
     }
 
     private void OnDrawGizmosSelected()
@@ -257,5 +331,21 @@ public class InstancedFlocking : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
         Gizmos.color = Color.white;
         Gizmos.DrawWireSphere(transform.position, maximumRadius);
+    }
+    private void OnDrawGizmos()
+    {
+        if (!isDebugEnabled || !Application.isPlaying || debugArray == null) return;
+
+        //Render debug visuals for each boid
+        foreach(DebugData data in debugArray) 
+        {
+            //Render velocity and display avoidance
+            Debug.DrawRay(data.position, data.velocity * debugRayDist, data.isAvoiding == 1 ? Color.red : Color.green);
+
+            if (data.isAvoiding == 0) continue;
+
+            //Draw line from boid to sampled ground
+            Debug.DrawLine(data.position, new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), Color.yellow);
+        }
     }
 }

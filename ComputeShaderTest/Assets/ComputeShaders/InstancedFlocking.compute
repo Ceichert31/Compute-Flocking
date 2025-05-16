@@ -29,7 +29,14 @@ SamplerState sampler_HeightMap;
 float _HeightmapResolution;
 float3 _TerrainSize;
 float3 _TerrainPosition;
-float _TerrainDistance;
+float _AvoidanceDistance;
+
+//Weights
+float _AlignmentWeight;
+float _CohesionWeight;
+float _SeperationWeight;
+float _AvoidanceWeight;
+float _CorrectionWeight;
 
 //Animation values
 float _BoidFrameSpeed;
@@ -38,6 +45,18 @@ int _NumberOfFrames;
 //Sphere detection
 float _MaximumRadius;
 float3 _SphereCenter;
+
+//Debug 
+struct DebugData
+{
+    float3 position;
+    float3 velocity;
+    float sampledTerrainHeight;
+    float groundDistance;
+    float isAvoiding;
+};
+
+RWStructuredBuffer<DebugData> _DebugBuffer;
 
 //Returns whether or not point is within bounds
 bool InsideBounds(float3 currentPos)
@@ -79,7 +98,7 @@ float GetTerrainHeight(float3 worldPos)
     float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz; 
     uv = saturate(uv);
     //Sample height value from heightmap 
-    float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0);
+    float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0).r;
 
     //Convert back to world space and return
     return height * _TerrainSize.y + _TerrainPosition.y;
@@ -100,29 +119,41 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float noise = clamp(noise1(_Time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
     float velocity = _BoidSpeed * (1.0 + noise * _BoidSpeedVariation);
 
+    //Get debug data
+    DebugData debugData = _DebugBuffer[id.x];
+
     //Default 1 because of self
     uint nearbyCount = 1;
+
+    //Get terrain height at boid position
+    float height = GetTerrainHeight(boid.position);
+
+    //Calculate distance to ground
+    float groundDist = (boid.position.y - height);
+
+    //Set debug values
+    debugData.position = boid.position;
+    debugData.groundDistance = groundDist;
+    debugData.sampledTerrainHeight = height;
+
+    //Check if it is within terrain distance
+    if (groundDist < _AvoidanceDistance)
+    {
+        float avoidanceFactor = (_AvoidanceDistance - groundDist) / _AvoidanceDistance;
+        groundAvoidance = float3(0, 1, 0) * avoidanceFactor;
+
+        debugData.isAvoiding = 1;
+    }
+    else
+    {
+        debugData.isAvoiding = 0;
+    }
 
     //Check for nearby boids
     for (uint i = 0; i < (uint)_BoidsCount; ++i)
     {
         //Pass if boid is self
         if (i == id.x) continue;
-
-        //Get terrain height at boid position
-        float height = GetTerrainHeight(boid.position);
-
-        //Calculate distance to ground
-        float groundDist = distance(boid.position.y, height);
-
-        //Check if it is within terrain distance
-        if (groundDist < _TerrainDistance)
-        {
-            //float3 groundOffset = boid.position - float3(boid.position.x, height, boid.position.z);
-            float avoidanceStrength = (_TerrainDistance - groundDist) / _TerrainDistance;
-            groundAvoidance = float3(0, 1, 0) * avoidanceStrength * 10000.0;
-            //groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / _TerrainDistance);
-        }
 
         //Check distance between our boid and nearby boid
         float dist = distance(boid.position, _BoidsBuffer[i].position);
@@ -163,7 +194,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }
 
     //Target direction is sum of all 3 values
-    float3 targetDirection = alignment + seperation + cohesion + correction + groundAvoidance;
+    float3 targetDirection = (
+        (alignment * _AlignmentWeight) + (seperation * _SeperationWeight) + (cohesion * _CohesionWeight)
+        + (correction * _CorrectionWeight) + (groundAvoidance * _AvoidanceWeight)
+    );
 
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, _RotationSpeed);
@@ -179,6 +213,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     {
         boid.frame -= _NumberOfFrames;
     }
+
+    //Cache velocity
+    debugData.velocity = boid.velocity;
+
+    //Update debug buffer
+    _DebugBuffer[id.x] = debugData;
 
     //Apply updates back to buffer
     _BoidsBuffer[id.x] = boid;

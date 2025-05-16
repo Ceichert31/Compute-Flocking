@@ -102,7 +102,7 @@ float GetTerrainHeight(float3 worldPos)
     float height = heightColor.r;
 
     //Convert back to world space and return
-    return height * _MaxHeight + _TerrainPosition.y;
+    return height * _TerrainSize.y + _TerrainPosition.y;
 }
 
 [numthreads(256,1,1)]

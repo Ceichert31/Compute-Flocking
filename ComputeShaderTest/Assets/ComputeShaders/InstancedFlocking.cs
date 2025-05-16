@@ -114,8 +114,6 @@ public class InstancedFlocking : MonoBehaviour
     ComputeBuffer debugBuffer;
     DebugData[] debugArray;
 
-    public RenderTexture debugTexture;
-
     private void Awake()
     {
         kernelHandle = shader.FindKernel("CSMain");
@@ -124,7 +122,7 @@ public class InstancedFlocking : MonoBehaviour
         groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
         numberOfBoids = groupSizeX * (int)x;
 
-        CalculateMaxTerrainHeight();
+        InitTerrain();
         InitBoids();
         GenerateSkinnedAnimationForGPUBuffer();
         InitShader();
@@ -133,30 +131,12 @@ public class InstancedFlocking : MonoBehaviour
         renderParams.worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);
     }
 
-    void CalculateMaxTerrainHeight()
+    void InitTerrain()
     {
-        //Cache resolution
-        int resolution = terrain.terrainData.heightmapResolution;
-
-        //Cache all heights
-        float[,] heightArray = terrain.terrainData.GetHeights(0, 0, resolution, resolution);
-
-        float maxHeight = 0;
-
-        //Iterate through height array and find largest value
-        for (int y = 0; y < resolution; ++y)
-        {
-            for (int x = 0; x < resolution; ++x)
-            {
-                //Compare values and cache largest value
-                maxHeight = Mathf.Max(maxHeight, heightArray[x, y]);
-            }
-        }
-
-        //Scale using maximum y scale
-        maxHeight *= terrain.terrainData.size.y;
-
-        shader.SetFloat("_MaxHeight", maxHeight);
+        shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
+        shader.SetFloat("_HeightmapResolution", terrain.terrainData.heightmapResolution);
+        shader.SetVector("_TerrainSize", terrain.terrainData.size);
+        shader.SetVector("_TerrainPosition", terrain.transform.position);
     }
 
     /// <summary>
@@ -219,14 +199,6 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
         boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
 
-        debugTexture = terrain.terrainData.heightmapTexture;
-
-        //Set terrain properties
-        shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
-        shader.SetFloat("_HeightmapResolution", terrain.terrainData.heightmapResolution);
-        shader.SetVector("_TerrainSize", terrain.terrainData.size);
-        shader.SetVector("_TerrainPosition", terrain.transform.position);
-
         //Set boid properties
         shader.SetInt("_BoidsCount", numberOfBoids);
         shader.SetFloat("_RotationSpeed", rotationSpeed);
@@ -265,6 +237,8 @@ public class InstancedFlocking : MonoBehaviour
             boidMaterial.DisableKeyword("FRAME_INTERPOLATION");
     }
 
+    Vector3 testPos;
+    float sampledHeight;
     private void Update()
     {
         //Update compute shaders uniform time values
@@ -281,7 +255,28 @@ public class InstancedFlocking : MonoBehaviour
         //Retrive debug data
         debugBuffer.GetData(debugArray);
 
-        
+        int res = terrain.terrainData.heightmapResolution;
+        Vector2 normalizedPos = new Vector2(
+            (testPos.x - terrain.transform.position.x) / terrain.terrainData.size.x,
+            (testPos.z - terrain.transform.position.z) / terrain.terrainData.size.z
+            );
+
+        normalizedPos.x = Mathf.Clamp01(normalizedPos.x);
+        normalizedPos.y = Mathf.Clamp01(normalizedPos.y);
+
+        float normalizedHeight = terrain.terrainData.GetHeight(
+            Mathf.FloorToInt(normalizedPos.x * (res - 1)),
+            Mathf.FloorToInt(normalizedPos.y * (res - 1))
+        ) / terrain.terrainData.size.y;
+
+        // Compare with actual terrain height
+        float actualHeight = terrain.SampleHeight(testPos);
+        float calculatedHeight = normalizedHeight * terrain.terrainData.size.y + terrain.transform.position.y;
+
+        Debug.Log($"Unity SampleHeight: {actualHeight}, Our Calculated: {calculatedHeight}," +
+                 $" Raw Normalized: {normalizedHeight}, TerrainSize.y: {terrain.terrainData.size.y}");
+
+        sampledHeight = actualHeight;
     }
     private void GenerateSkinnedAnimationForGPUBuffer()
     {
@@ -378,5 +373,14 @@ public class InstancedFlocking : MonoBehaviour
             //Draw line from boid to sampled ground
             Debug.DrawLine(data.position, new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), Color.yellow);
         }
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(testPos, 0.5f);
+
+        Gizmos.color = Color.blue;
+        Vector3 heightPos = new Vector3(testPos.x, sampledHeight, testPos.z);
+        Gizmos.DrawSphere(heightPos, 0.5f);
+
+        Gizmos.DrawLine(testPos, heightPos);
     }
 }

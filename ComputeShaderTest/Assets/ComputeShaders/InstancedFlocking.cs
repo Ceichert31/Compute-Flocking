@@ -134,28 +134,32 @@ public class InstancedFlocking : MonoBehaviour
         argsBuffer.SetData(data);
 
         //Set buffer properties
-        shader.SetBuffer(kernelHandle, "boidsBuffer", boidsBuffer);
+        shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
         boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
 
-        shader.SetTexture(kernelHandle, "heightMap", heightMap);
+        //Set terrain properties
+        shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
+        shader.SetFloat("_HeightmapResolution", terrain.terrainData.heightmapResolution);
+        shader.SetVector("_TerrainSize", terrain.terrainData.size);
+        shader.SetVector("_TerrainPosition", terrain.transform.position);
 
         //Set boid properties
-        shader.SetInt("boidsCount", numberOfBoids);
-        shader.SetFloat("rotationSpeed", rotationSpeed);
-        shader.SetFloat("boidSpeed", boidSpeed);
-        shader.SetFloat("neighborDistance", neighbourDistance);
-        shader.SetFloat("terrainDistance", terrainDistance);
-        shader.SetFloat("boidSpeedVariation", boidSpeedVariation);
-        shader.SetVector("flockPosition", target.transform.position);
+        shader.SetInt("_BoidsCount", numberOfBoids);
+        shader.SetFloat("_RotationSpeed", rotationSpeed);
+        shader.SetFloat("_BoidSpeed", boidSpeed);
+        shader.SetFloat("_NeighborDistance", neighbourDistance);
+        shader.SetFloat("_TerrainDistance", terrainDistance);
+        shader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
+        shader.SetVector("_FlockPosition", target.transform.position);
 
         //Set boundry properties
-        shader.SetFloat("maximumRadius", maximumRadius);
-        shader.SetVector("sphereCenter", transform.position);
+        shader.SetFloat("_MaximumRadius", maximumRadius);
+        shader.SetVector("_SphereCenter", transform.position);
 
         //Set animation properties
-        shader.SetInt("numberOfFrames", numberOfFrames);
+        shader.SetInt("_NumberOfFrames", numberOfFrames);
         boidMaterial.SetInt("numberOfFrames", numberOfFrames);
-        shader.SetFloat("boidFrameSpeed", boidFrameSpeed);
+        shader.SetFloat("_BoidFrameSpeed", boidFrameSpeed);
 
         //Enabling smooth interpolation between frames in litfowardshader
         if (frameInterpolation && !boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
@@ -167,8 +171,8 @@ public class InstancedFlocking : MonoBehaviour
     private void Update()
     {
         //Update compute shaders uniform time values
-        shader.SetFloat("time", Time.time);
-        shader.SetFloat("deltaTime", Time.deltaTime);
+        shader.SetFloat("_Time", Time.time);
+        shader.SetFloat("_DeltaTime", Time.deltaTime);
 
         //Dispatch compute shader to GPU
         shader.Dispatch(kernelHandle, groupSizeX, 1, 1);

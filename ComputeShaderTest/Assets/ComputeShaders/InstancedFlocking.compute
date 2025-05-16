@@ -11,39 +11,42 @@ struct Boid
 };
 
 //Time values
-float time;
-float deltaTime;
+float _Time;
+float _DeltaTime;
 
 //Boid values
-RWStructuredBuffer<Boid> boidsBuffer;
-RWTexture2D<float4> heightMap;
-int boidsCount;
-float rotationSpeed;
-float boidSpeed;
-float neighborDistance;
-float terrainDistance;
-float boidSpeedVariation;
-float3 flockPosition;
+RWStructuredBuffer<Boid> _BoidsBuffer;
+int _BoidsCount;
+float _RotationSpeed;
+float _BoidSpeed;
+float _NeighborDistance;
+float _BoidSpeedVariation;
+float3 _FlockPosition;
+
+//Terrain values
+Texture2D<float4> _HeightMap;
+SamplerState sampler_HeightMap;
+float _HeightmapResolution;
+float3 _TerrainSize;
+float3 _TerrainPosition;
+float _TerrainDistance;
 
 //Animation values
-float boidFrameSpeed;
-int numberOfFrames;
+float _BoidFrameSpeed;
+int _NumberOfFrames;
 
 //Sphere detection
-float maximumRadius;
-float3 sphereCenter;
-
-//Terrain detection
-float terrainHeight;
+float _MaximumRadius;
+float3 _SphereCenter;
 
 //Returns whether or not point is within bounds
 bool InsideBounds(float3 currentPos)
 {
-    float xValue = pow(currentPos.x - sphereCenter.x, 2);
-    float yValue = pow(currentPos.y - sphereCenter.y, 2);
-    float zValue = pow(currentPos.z - sphereCenter.z, 2);
+    float xValue = pow(currentPos.x - _SphereCenter.x, 2);
+    float yValue = pow(currentPos.y - _SphereCenter.y, 2);
+    float zValue = pow(currentPos.z - _SphereCenter.z, 2);
 
-    if (xValue + yValue + zValue < pow(maximumRadius, 2))
+    if (xValue + yValue + zValue < pow(_MaximumRadius, 2))
     {
         return true;
     }
@@ -70,61 +73,76 @@ float noise1( float3 x )
 					lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
 }
 
+float GetTerrainHeight(float3 worldPos)
+{
+    //Convert from world space to UV coord space
+    float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz; 
+    
+    //Sample height value from heightmap 
+    float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0);
+
+    //Convert back to world space and return
+    return height * _TerrainSize.y + _TerrainPosition.y;
+}
+
 [numthreads(256,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     //Cache boid
-    Boid boid = boidsBuffer[id.x];
+    Boid boid = _BoidsBuffer[id.x];
 
     float3 seperation = 0;
     float3 alignment = 0;
-    float3 cohesion = flockPosition;
+    float3 cohesion = _FlockPosition;
     float3 correction = 0;
     float3 groundAvoidance = 0; 
 
-    float noise = clamp(noise1(time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
-    float velocity = boidSpeed * (1.0 + noise * boidSpeedVariation);
+    float noise = clamp(noise1(_Time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
+    float velocity = _BoidSpeed * (1.0 + noise * _BoidSpeedVariation);
 
     //Default 1 because of self
     uint nearbyCount = 1;
 
     //Check for nearby boids
-    for (uint i = 0; i < (uint)boidsCount; ++i)
+    for (uint i = 0; i < (uint)_BoidsCount; ++i)
     {
         //Pass if boid is self
         if (i == id.x) continue;
 
+        //Get terrain height at boid position
+        float height = GetTerrainHeight(boid.position);
+
         //Calculate distance to ground
-        float groundDist = distance(boid.position.y, terrainHeight);
+        float groundDist = distance(boid.position.y, height);
 
         //Check if it is within terrain distance
-        if (groundDist < terrainDistance)
+        if (groundDist < _TerrainDistance)
         {
-            float3 groundOffset = boid.position - float3(boid.position.x, terrainHeight, boid.position.z);
-            groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / neighborDistance);
+            float3 groundOffset = boid.position - float3(boid.position.x, height, boid.position.z);
+            groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / _TerrainDistance);
         }
 
         //Check distance between our boid and nearby boid
-        float dist = distance(boid.position, boidsBuffer[i].position);
+        float dist = distance(boid.position, _BoidsBuffer[i].position);
 
         //If too close
-        if (dist < neighborDistance)
+        if (dist < _NeighborDistance)
         {
             //Calculate Seperation
-            float3 offset = boid.position - boidsBuffer[i].position;
+            float3 offset = boid.position - _BoidsBuffer[i].position;
             //Ensure distance isn't zero
             dist = max(dist, 0.000001); 
             //If boid is close, increase seperation vector 
-            seperation += offset * (1.0 / dist - 1.0 / neighborDistance);
+            seperation += offset * (1.0 / dist - 1.0 / _NeighborDistance);
 
             //Get the sum of each boids direction
-            alignment += boidsBuffer[i].velocity;
+            alignment += _BoidsBuffer[i].velocity;
 
             //Get the sum of each boids position
-            cohesion += boidsBuffer[i].position;
+            cohesion += _BoidsBuffer[i].position;
 
             //Add one to count of nearby boids
-            nearbyCount += 1;
+            nearbyCount++;
         }
     }
 
@@ -138,28 +156,28 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //If boid is outside of bounds
     if (!InsideBounds(boid.position))
     {
-        //Move back towards center of sphere
-        correction = normalize(sphereCenter - boid.position);
+        //Move back towards flock position
+        correction = normalize(_FlockPosition - boid.position);
     }
 
     //Target direction is sum of all 3 values
     float3 targetDirection = alignment + seperation + cohesion + correction + groundAvoidance;
 
     //Lerp towards target direction
-    boid.velocity = lerp(normalize(boid.velocity), targetDirection, 0.01);
+    boid.velocity = lerp(normalize(boid.velocity), targetDirection, _RotationSpeed);
 
     //Apply force
-    boid.position += (boid.velocity * velocity * deltaTime);
+    boid.position += (boid.velocity * velocity * _DeltaTime);
 
     //Update animation
-    boid.frame = boid.frame + velocity * deltaTime * boidFrameSpeed;
+    boid.frame = boid.frame + velocity * _DeltaTime * _BoidFrameSpeed;
     
     //If reaching end of frames, reset
-    if (boid.frame >= numberOfFrames)
+    if (boid.frame >= _NumberOfFrames)
     {
-        boid.frame -= numberOfFrames;
+        boid.frame -= _NumberOfFrames;
     }
 
     //Apply updates back to buffer
-    boidsBuffer[id.x] = boid;
+    _BoidsBuffer[id.x] = boid;
 }

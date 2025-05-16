@@ -856,7 +856,7 @@ Transform:
   m_GameObject: {fileID: 1775029685}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 32.0747, y: 22.65658, z: -21.901173}
+  m_LocalPosition: {x: 32.0747, y: -31.72, z: -21.901173}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -880,7 +880,6 @@ MonoBehaviour:
   boidMaterial: {fileID: 2100000, guid: 8b1f3efd4dcb0104fb9a38aed9d6058d, type: 2}
   target: {fileID: 1775029686}
   terrain: {fileID: 242030105}
-  heightMap: {fileID: 2800000, guid: aedbf2da17b921c41ba587029790e0a8, type: 3}
   rotationSpeed: 0.01
   boidSpeed: 10
   neighbourDistance: 10

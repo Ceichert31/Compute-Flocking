@@ -30,7 +30,6 @@ public class InstancedFlocking : MonoBehaviour
     public Material boidMaterial;
     public Transform target;
     [SerializeField] Terrain terrain;
-    public Texture2D heightMap;
 
     [Header("Boid Values")]
     public float rotationSpeed = 1f;

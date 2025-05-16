@@ -77,7 +77,7 @@ float GetTerrainHeight(float3 worldPos)
 {
     //Convert from world space to UV coord space
     float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz; 
-    
+    uv = saturate(uv);
     //Sample height value from heightmap 
     float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0);
 
@@ -118,8 +118,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         //Check if it is within terrain distance
         if (groundDist < _TerrainDistance)
         {
-            float3 groundOffset = boid.position - float3(boid.position.x, height, boid.position.z);
-            groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / _TerrainDistance);
+            //float3 groundOffset = boid.position - float3(boid.position.x, height, boid.position.z);
+            float avoidanceStrength = (_TerrainDistance - groundDist) / _TerrainDistance;
+            groundAvoidance = float3(0, 1, 0) * avoidanceStrength * 10000.0;
+            //groundAvoidance += groundOffset * (1.0 / groundDist - 1.0 / _TerrainDistance);
         }
 
         //Check distance between our boid and nearby boid

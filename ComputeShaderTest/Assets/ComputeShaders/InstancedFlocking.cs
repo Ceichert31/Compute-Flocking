@@ -114,6 +114,7 @@ public class InstancedFlocking : MonoBehaviour
     ComputeBuffer debugBuffer;
     DebugData[] debugArray;
 
+    public RenderTexture debugTexture;
 
     private void Awake()
     {
@@ -123,6 +124,7 @@ public class InstancedFlocking : MonoBehaviour
         groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
         numberOfBoids = groupSizeX * (int)x;
 
+        CalculateMaxTerrainHeight();
         InitBoids();
         GenerateSkinnedAnimationForGPUBuffer();
         InitShader();
@@ -130,6 +132,33 @@ public class InstancedFlocking : MonoBehaviour
         renderParams = new RenderParams(boidMaterial);
         renderParams.worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);
     }
+
+    void CalculateMaxTerrainHeight()
+    {
+        //Cache resolution
+        int resolution = terrain.terrainData.heightmapResolution;
+
+        //Cache all heights
+        float[,] heightArray = terrain.terrainData.GetHeights(0, 0, resolution, resolution);
+
+        float maxHeight = 0;
+
+        //Iterate through height array and find largest value
+        for (int y = 0; y < resolution; ++y)
+        {
+            for (int x = 0; x < resolution; ++x)
+            {
+                //Compare values and cache largest value
+                maxHeight = Mathf.Max(maxHeight, heightArray[x, y]);
+            }
+        }
+
+        //Scale using maximum y scale
+        maxHeight *= terrain.terrainData.size.y;
+
+        shader.SetFloat("_MaxHeight", maxHeight);
+    }
+
     /// <summary>
     /// Creates an array of boids
     /// </summary>
@@ -189,6 +218,8 @@ public class InstancedFlocking : MonoBehaviour
         //Set buffer properties
         shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
         boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
+
+        debugTexture = terrain.terrainData.heightmapTexture;
 
         //Set terrain properties
         shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);

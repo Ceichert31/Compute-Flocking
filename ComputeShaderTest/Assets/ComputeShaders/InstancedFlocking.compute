@@ -24,12 +24,13 @@ float _BoidSpeedVariation;
 float3 _FlockPosition;
 
 //Terrain values
-Texture2D<float4> _HeightMap;
+Texture2D<float> _HeightMap;
 SamplerState sampler_HeightMap;
 float _HeightmapResolution;
 float3 _TerrainSize;
 float3 _TerrainPosition;
 float _AvoidanceDistance;
+float _MaxHeight;
 
 //Weights
 float _AlignmentWeight;
@@ -96,12 +97,12 @@ float GetTerrainHeight(float3 worldPos)
 {
     //Convert from world space to UV coord space
     float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz; 
-    uv = saturate(uv);
     //Sample height value from heightmap 
-    float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0).r;
+    float4 heightColor = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0);
+    float height = heightColor.r;
 
     //Convert back to world space and return
-    return height * _TerrainSize.y + _TerrainPosition.y;
+    return height * _MaxHeight + _TerrainPosition.y;
 }
 
 [numthreads(256,1,1)]

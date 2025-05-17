@@ -970,15 +970,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boidsCount: 1000
   rotationSpeed: 0.01
-  boidSpeed: 10
-  boidSpeedVariation: 0.8
+  boidSpeed: 12
+  boidSpeedVariation: 0.5
   neighbourDistance: 10
-  avoidanceDistance: 12
+  avoidanceDistance: 18
   alignmentWeight: 1
   cohesionWeight: 1
   seperationWeight: 5
   correctionWeight: 2
-  groundAvoidanceWeight: 25
+  groundAvoidanceWeight: 20
   spawnRadius: 100
   maximumRadius: 200
   boidFrameSpeed: 7

@@ -133,6 +133,8 @@ public class InstancedFlocking : MonoBehaviour
 
     void InitTerrain()
     {
+        //for (int y = 0; y < )
+
         shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
         shader.SetFloat("_HeightmapResolution", terrain.terrainData.heightmapResolution);
         shader.SetVector("_TerrainSize", terrain.terrainData.size);

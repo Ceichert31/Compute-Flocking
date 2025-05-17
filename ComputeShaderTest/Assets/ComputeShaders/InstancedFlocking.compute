@@ -102,7 +102,7 @@ float GetTerrainHeight(float3 worldPos)
     float height = heightColor.r;
 
     //Convert back to world space and return
-    return height * _TerrainSize.y + _TerrainPosition.y;
+    return height * _TerrainSize.y * 1.7 + _TerrainPosition.y;
 }
 
 [numthreads(256,1,1)]
@@ -130,25 +130,25 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float height = GetTerrainHeight(boid.position);
 
     //Calculate distance to ground
-    float groundDist = (boid.position.y - height);
+    //float groundDist = (boid.position.y - height);
 
     //Set debug values
     debugData.position = boid.position;
-    debugData.groundDistance = groundDist;
-    debugData.sampledTerrainHeight = height;
+    //debugData.groundDistance = groundDist;
+    //debugData.sampledTerrainHeight = height;
 
-    //Check if it is within terrain distance
-    if (groundDist < _AvoidanceDistance)
-    {
-        float avoidanceFactor = (_AvoidanceDistance - groundDist) / _AvoidanceDistance;
-        groundAvoidance = float3(0, 1, 0) * avoidanceFactor;
+    // //Check if it is within terrain distance
+    // if (groundDist < _AvoidanceDistance)
+    // {
+    //     float avoidanceFactor = (_AvoidanceDistance - groundDist) / _AvoidanceDistance;
+    //     groundAvoidance = float3(0, 1, 0) * avoidanceFactor;
 
-        debugData.isAvoiding = 1;
-    }
-    else
-    {
-        debugData.isAvoiding = 0;
-    }
+    //     debugData.isAvoiding = 1;
+    // }
+    // else
+    // {
+    //     debugData.isAvoiding = 0;
+    // }
 
     //Check for nearby boids
     for (uint i = 0; i < (uint)_BoidsCount; ++i)
@@ -203,7 +203,43 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, _RotationSpeed);
 
+    float3 futurePos = 0;
     //Apply force
+    //boid.position += (boid.velocity * velocity * _DeltaTime);
+    futurePos += (boid.velocity * velocity * _DeltaTime);
+
+    //Check if future position is colliding with ground
+    float futureHeight = GetTerrainHeight(futurePos);
+
+    float futureGroundDist = (futurePos.y - futureHeight);
+
+    debugData.sampledTerrainHeight = futureHeight;
+    debugData.groundDistance = futureGroundDist;
+
+    if (futureGroundDist < _AvoidanceDistance)
+    {
+        float3 futureOffset = futurePos - float3(futurePos.x, futureHeight, futurePos.z);
+        //Ensure distance isn't zero
+        futureGroundDist = max(futureGroundDist, 0.000001); 
+        //If boid is close, increase seperation vector 
+        groundAvoidance += futureOffset * (1.0 / futureGroundDist - 1.0 / _AvoidanceDistance);
+
+        debugData.isAvoiding = 1;
+    }
+    else
+    {
+        debugData.isAvoiding = 0;
+    }
+
+     float3 targetDirection2 = (
+        (alignment * _AlignmentWeight) + (seperation * _SeperationWeight) + (cohesion * _CohesionWeight)
+        + (correction * _CorrectionWeight) + (groundAvoidance * _AvoidanceWeight)
+    );
+
+    //Lerp towards target direction
+    boid.velocity = lerp(normalize(boid.velocity), targetDirection2, _RotationSpeed);
+
+    //Set position
     boid.position += (boid.velocity * velocity * _DeltaTime);
 
     //Update animation

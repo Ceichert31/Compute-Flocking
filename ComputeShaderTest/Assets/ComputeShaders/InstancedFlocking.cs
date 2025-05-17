@@ -96,6 +96,7 @@ public class InstancedFlocking : MonoBehaviour
         public float sampledTerrainHeight;
         public float groundDistance;
         public float isAvoiding;
+        public Vector3 futurePos;
 
         public DebugData(Vector3 pos)
         {
@@ -104,9 +105,10 @@ public class InstancedFlocking : MonoBehaviour
             sampledTerrainHeight = 0;
             groundDistance = 0;
             isAvoiding = 0;
+            futurePos = Vector3.zero;
         }
     }
-    const int DEBUG_STRIDE = 9;
+    const int DEBUG_STRIDE = 12;
 
     [Header("Debug Settings")]
     public bool isDebugEnabled;
@@ -369,6 +371,9 @@ public class InstancedFlocking : MonoBehaviour
         {
             //Render velocity and display avoidance
             Debug.DrawRay(data.position, data.velocity * debugRayDist, data.isAvoiding == 1 ? Color.red : Color.green);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawSphere(data.futurePos, 1);
 
             if (data.isAvoiding == 0) continue;
 

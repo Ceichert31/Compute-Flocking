@@ -205,12 +205,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, _RotationSpeed);
 
-    float3 futurePos = boid.position;
+    float3 futurePos = boid.position + normalize(boid.velocity) * _AvoidanceDistance;
     //Apply force
     //boid.position += (boid.velocity * velocity * _DeltaTime);
 
     //Apply some sort of offset on the foward vector
-    futurePos += (boid.velocity * velocity * _DeltaTime);
+    //futurePos += (boid.velocity * velocity * _DeltaTime);
 
     debugData.futurePos = futurePos;
 
@@ -224,11 +224,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     if (futureGroundDist < _AvoidanceDistance)
     {
-        float3 futureOffset = futurePos - float3(futurePos.x, futureHeight, futurePos.z);
-        //Ensure distance isn't zero
-        futureGroundDist = max(futureGroundDist, 0.000001); 
-        //If boid is close, increase seperation vector 
-        groundAvoidance += futureOffset * (1.0 / futureGroundDist - 1.0 / _AvoidanceDistance);
+        float futureAvoidanceStrength = (_AvoidanceDistance - futureGroundDist) / _AvoidanceDistance;
+        groundAvoidance += float3(0, 1, 0) * futureAvoidanceStrength * _AvoidanceWeight;
 
         debugData.isAvoiding = 1;
     }

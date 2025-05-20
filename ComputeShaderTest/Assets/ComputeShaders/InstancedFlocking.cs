@@ -241,8 +241,6 @@ public class InstancedFlocking : MonoBehaviour
             boidMaterial.DisableKeyword("FRAME_INTERPOLATION");
     }
 
-    Vector3 testPos;
-    float sampledHeight;
     private void Update()
     {
         //Update compute shaders uniform time values
@@ -258,29 +256,6 @@ public class InstancedFlocking : MonoBehaviour
         if (!isDebugEnabled) return;
         //Retrive debug data
         debugBuffer.GetData(debugArray);
-
-        int res = terrain.terrainData.heightmapResolution;
-        Vector2 normalizedPos = new Vector2(
-            (testPos.x - terrain.transform.position.x) / terrain.terrainData.size.x,
-            (testPos.z - terrain.transform.position.z) / terrain.terrainData.size.z
-            );
-
-        normalizedPos.x = Mathf.Clamp01(normalizedPos.x);
-        normalizedPos.y = Mathf.Clamp01(normalizedPos.y);
-
-        float normalizedHeight = terrain.terrainData.GetHeight(
-            Mathf.FloorToInt(normalizedPos.x * (res - 1)),
-            Mathf.FloorToInt(normalizedPos.y * (res - 1))
-        ) / terrain.terrainData.size.y;
-
-        // Compare with actual terrain height
-        float actualHeight = terrain.SampleHeight(testPos);
-        float calculatedHeight = normalizedHeight * terrain.terrainData.size.y + terrain.transform.position.y;
-
-        Debug.Log($"Unity SampleHeight: {actualHeight}, Our Calculated: {calculatedHeight}," +
-                 $" Raw Normalized: {normalizedHeight}, TerrainSize.y: {terrain.terrainData.size.y}");
-
-        sampledHeight = actualHeight;
     }
     private void GenerateSkinnedAnimationForGPUBuffer()
     {
@@ -373,21 +348,13 @@ public class InstancedFlocking : MonoBehaviour
             Debug.DrawRay(data.position, data.velocity * debugRayDist, data.isAvoiding == 1 ? Color.red : Color.green);
 
             Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(data.futurePos, 1);
+            //Gizmos.DrawSphere(data.futurePos, 1);
+            Gizmos.DrawSphere(new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), 1f);
 
             if (data.isAvoiding == 0) continue;
 
             //Draw line from boid to sampled ground
             Debug.DrawLine(data.position, new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), Color.yellow);
         }
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(testPos, 0.5f);
-
-        Gizmos.color = Color.blue;
-        Vector3 heightPos = new Vector3(testPos.x, sampledHeight, testPos.z);
-        Gizmos.DrawSphere(heightPos, 0.5f);
-
-        Gizmos.DrawLine(testPos, heightPos);
     }
 }

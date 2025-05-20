@@ -118,7 +118,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 correction = 0;
     float3 groundAvoidance = 0; 
 
+    //Calculate noise to be used for speed variation
     float noise = clamp(noise1(_Time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
+    
+    //Use noise to determine velocity
     float velocity = _BoidSpeed * (1.0 + noise * _BoidSpeedVariation);
 
     //Get debug data
@@ -126,31 +129,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     //Default 1 because of self
     uint nearbyCount = 1;
-
-    //Get terrain height at boid position
-    float height = GetTerrainHeight(boid.position);
-
-    //Calculate distance to ground
-    //float groundDist = (boid.position.y - height);
-
-    //Set debug values
-    debugData.position = boid.position;
-    //debugData.groundDistance = groundDist;
-    //debugData.sampledTerrainHeight = height;
-
-    // //Check if it is within terrain distance
-    // if (groundDist < _AvoidanceDistance)
-    // {
-    //     float avoidanceFactor = (_AvoidanceDistance - groundDist) / _AvoidanceDistance;
-    //     groundAvoidance = float3(0, 1, 0) * avoidanceFactor;
-
-    //     debugData.isAvoiding = 1;
-    // }
-    // else
-    // {
-    //     debugData.isAvoiding = 0;
-    // }
-
+    
     //Check for nearby boids
     for (uint i = 0; i < (uint)_BoidsCount; ++i)
     {
@@ -205,23 +184,16 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, _RotationSpeed);
 
-    float3 futurePos = boid.position + normalize(boid.velocity) * _AvoidanceDistance;
-    //Apply force
-    //boid.position += (boid.velocity * velocity * _DeltaTime);
+    //Calculate the boids projected path
+    float3 futurePos = boid.position + normalize(boid.velocity) * velocity * _DeltaTime;
 
-    //Apply some sort of offset on the foward vector
-    //futurePos += (boid.velocity * velocity * _DeltaTime);
-
-    debugData.futurePos = futurePos;
-
-    //Check if future position is colliding with ground
+    //Sample future positions heightmap
     float futureHeight = GetTerrainHeight(futurePos);
 
+    //Calculate distance from ground
     float futureGroundDist = (futurePos.y - futureHeight);
 
-    debugData.sampledTerrainHeight = futureHeight;
-    debugData.groundDistance = futureGroundDist;
-
+    //If too close to ground, increase avoidance
     if (futureGroundDist < _AvoidanceDistance)
     {
         float futureAvoidanceStrength = (_AvoidanceDistance - futureGroundDist) / _AvoidanceDistance;
@@ -254,8 +226,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         boid.frame -= _NumberOfFrames;
     }
 
-    //Cache velocity
+    //Set debug values
     debugData.velocity = boid.velocity;
+    debugData.position = boid.position;
+    debugData.futurePos = futurePos;
+    debugData.sampledTerrainHeight = futureHeight;
+    debugData.groundDistance = futureGroundDist;
 
     //Update debug buffer
     _DebugBuffer[id.x] = debugData;

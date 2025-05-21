@@ -47,19 +47,6 @@ int _NumberOfFrames;
 float _MaximumRadius;
 float3 _SphereCenter;
 
-//Debug 
-struct DebugData
-{
-    float3 position;
-    float3 velocity;
-    float sampledTerrainHeight;
-    float groundDistance;
-    float isAvoiding;
-    float3 futurePos;
-};
-
-RWStructuredBuffer<DebugData> _DebugBuffer;
-
 //Returns whether or not point is within bounds
 bool InsideBounds(float3 currentPos)
 {
@@ -124,11 +111,21 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Use noise to determine velocity
     float velocity = _BoidSpeed * (1.0 + noise * _BoidSpeedVariation);
 
-    //Get debug data
-    DebugData debugData = _DebugBuffer[id.x];
-
     //Default 1 because of self
     uint nearbyCount = 1;
+    
+      //Sample future positions heightmap
+    float sampledHeight = GetTerrainHeight(boid.position);
+
+    //Calculate distance from ground
+    float groundDist = (boid.position.y - sampledHeight);
+
+    //If too close to ground, increase avoidance
+    if (groundDist < _AvoidanceDistance)
+    {
+        float avoidanceStrength = (_AvoidanceDistance - groundDist) / _AvoidanceDistance;
+        groundAvoidance += float3(0, 1, 0) * avoidanceStrength * _AvoidanceWeight;
+    }
     
     //Check for nearby boids
     for (uint i = 0; i < (uint)_BoidsCount; ++i)
@@ -184,36 +181,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), targetDirection, _RotationSpeed);
 
-    //Calculate the boids projected path
-    float3 futurePos = boid.position + normalize(boid.velocity) * velocity * _DeltaTime;
-
-    //Sample future positions heightmap
-    float futureHeight = GetTerrainHeight(futurePos);
-
-    //Calculate distance from ground
-    float futureGroundDist = (futurePos.y - futureHeight);
-
-    //If too close to ground, increase avoidance
-    if (futureGroundDist < _AvoidanceDistance)
-    {
-        float futureAvoidanceStrength = (_AvoidanceDistance - futureGroundDist) / _AvoidanceDistance;
-        groundAvoidance += float3(0, 1, 0) * futureAvoidanceStrength * _AvoidanceWeight;
-
-        debugData.isAvoiding = 1;
-    }
-    else
-    {
-        debugData.isAvoiding = 0;
-    }
-
-    float3 updatedTargetDirection = (
-        (alignment * _AlignmentWeight) + (seperation * _SeperationWeight) + (cohesion * _CohesionWeight)
-        + (correction * _CorrectionWeight) + (groundAvoidance * _AvoidanceWeight)
-    );
-
-    //Lerp towards target direction
-    boid.velocity = lerp(normalize(boid.velocity), updatedTargetDirection, _RotationSpeed);
-
     //Set position
     boid.position += (boid.velocity * velocity * _DeltaTime);
 
@@ -225,16 +192,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     {
         boid.frame -= _NumberOfFrames;
     }
-
-    //Set debug values
-    debugData.velocity = boid.velocity;
-    debugData.position = boid.position;
-    debugData.futurePos = futurePos;
-    debugData.sampledTerrainHeight = futureHeight;
-    debugData.groundDistance = futureGroundDist;
-
-    //Update debug buffer
-    _DebugBuffer[id.x] = debugData;
 
     //Apply updates back to buffer
     _BoidsBuffer[id.x] = boid;

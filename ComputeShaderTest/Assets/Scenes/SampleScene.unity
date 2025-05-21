@@ -949,7 +949,7 @@ Transform:
   m_GameObject: {fileID: 1775029685}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -3.1372, z: 0}
+  m_LocalPosition: {x: -58, y: 45.4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -968,19 +968,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb3cba714cc4d334b99aebfb28e224ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boidsCount: 1000
+  boidsCount: 500
   rotationSpeed: 0.01
   boidSpeed: 12
   boidSpeedVariation: 0.5
-  neighbourDistance: 10
+  neighbourDistance: 15
   avoidanceDistance: 25
-  alignmentWeight: 2
-  cohesionWeight: 2
+  alignmentWeight: 5
+  cohesionWeight: 3
   seperationWeight: 10
   correctionWeight: 2
   groundAvoidanceWeight: 20
   spawnRadius: 100
-  maximumRadius: 200
+  maximumRadius: 272.5
   boidFrameSpeed: 7
   frameInterpolation: 1
   shader: {fileID: 7200000, guid: d7b1e61803474fc4a9ae170b63d7c953, type: 3}
@@ -990,8 +990,6 @@ MonoBehaviour:
   terrain: {fileID: 242030105}
   boidObject: {fileID: 1294871422}
   animationClip: {fileID: 7400000, guid: 3c0f06227faaaf24b9d7495215f892e8, type: 2}
-  isDebugEnabled: 0
-  debugRayDist: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

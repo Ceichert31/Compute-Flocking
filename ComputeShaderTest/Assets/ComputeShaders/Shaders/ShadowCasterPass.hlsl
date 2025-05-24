@@ -15,9 +15,11 @@ float3 _LightPosition;
 
 struct Boid
 {
-    float3 position; 
-    float3 direction; 
-    float noise_offset;
+    float3 position;
+    float3 velocity;
+    float noiseOffset;
+    float frame;
+    float3 padding;
 };
 
 StructuredBuffer<Boid> boidsBuffer;
@@ -68,7 +70,7 @@ float4 GetShadowPositionHClip(Attributes input)
 {
     Boid boid = boidsBuffer[input.instanceID];
 
-    float4x4 mat = create_matrix(boid.position, boid.direction, float3(0.0, 1.0, 0.0));
+    float4x4 mat = create_matrix(boid.position, boid.velocity, float3(0.0, 1.0, 0.0));
 
     float3 positionWS = TransformObjectToWorld(mul(mat, input.positionOS).xyz);
     float3 normalWS = TransformObjectToWorldNormal(mul(mat, input.normalOS));

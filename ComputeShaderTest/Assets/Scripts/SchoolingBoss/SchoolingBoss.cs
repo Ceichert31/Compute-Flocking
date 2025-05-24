@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
-public class InstancedFlocking : MonoBehaviour
+public class SchoolingBoss : MonoBehaviour
 {
     public struct Boid
     {
@@ -26,6 +27,11 @@ public class InstancedFlocking : MonoBehaviour
 
     [Header("Boid General Settings")]
     public int boidsCount;
+    public float spawnRadius;
+    [SerializeField]
+    private bool isMeshState;
+    [SerializeField]
+    private int vertexSkip = 4;
 
     [Header("Boid Movement Values")]
     public float rotationSpeed = 1f;
@@ -44,13 +50,7 @@ public class InstancedFlocking : MonoBehaviour
     [Range(0, 1000f)]
     public float seperationWeight;
     [Range(0, 1000f)]
-    public float correctionWeight;
-    [Range(0, 1000f)]
     public float groundAvoidanceWeight;
-
-    [Header("Boundry Values")]
-    public float spawnRadius;
-    public float maximumRadius;
 
     [Header("Animator Values")]
     public float boidFrameSpeed = 10f;
@@ -58,8 +58,9 @@ public class InstancedFlocking : MonoBehaviour
     int numberOfFrames;
 
     [Header("Boid References")]
-    public ComputeShader shader;
+    public ComputeShader boidShader;
     public Mesh boidMesh;
+    public MeshFilter targetShape;
     public Material boidMaterial;
     public Transform target;
     [SerializeField] Terrain terrain;
@@ -90,16 +91,24 @@ public class InstancedFlocking : MonoBehaviour
 
     private void Awake()
     {
-        kernelHandle = shader.FindKernel("CSMain");
+        boidsCount = targetShape.mesh.vertexCount;
 
-        shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
+        kernelHandle = boidShader.FindKernel("BoidLogic");
+
+        boidShader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
         groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
         numberOfBoids = groupSizeX * (int)x;
 
+        InitTerrain();
         InitBoids();
         GenerateSkinnedAnimationForGPUBuffer();
-        InitTerrain();
         InitShader();
+
+        //Assign each boid a vertex to adhere to
+        for (int i = 0; i < boidsCount; i += vertexSkip)
+        {
+            //Assign a vertex 
+        }
 
         renderParams = new RenderParams(boidMaterial);
         renderParams.worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);
@@ -107,10 +116,10 @@ public class InstancedFlocking : MonoBehaviour
 
     void InitTerrain()
     {
-        shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
-        shader.SetFloat("_HeightmapResolution", terrain.terrainData.heightmapResolution);
-        shader.SetVector("_TerrainSize", terrain.terrainData.size);
-        shader.SetVector("_TerrainPosition", terrain.transform.position);
+        boidShader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
+        boidShader.SetFloat("_HeightmapResolution", terrain.terrainData.heightmapResolution);
+        boidShader.SetVector("_TerrainSize", terrain.terrainData.size);
+        boidShader.SetVector("_TerrainPosition", terrain.transform.position);
     }
 
     /// <summary>
@@ -125,7 +134,7 @@ public class InstancedFlocking : MonoBehaviour
         {
             //Random boid spawn pos
             Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            
+
             //Random boid rotation
             Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
 
@@ -141,12 +150,17 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     void InitShader()
     {
-        // Init graphics buffer
+        //Init boid buffer
+        boidsBuffer = new ComputeBuffer(numberOfBoids, STRIDE * sizeof(float));
+
+        //Cache data on GPU
+        boidsBuffer.SetData(boidsArray);
+
+        //Init graphics buffer
         argsBuffer = new GraphicsBuffer(
             GraphicsBuffer.Target.IndirectArguments,
             1,
-            GraphicsBuffer.IndirectDrawIndexedArgs.size
-        );
+            GraphicsBuffer.IndirectDrawIndexedArgs.size);
 
         //Create data buffer object
         GraphicsBuffer.IndirectDrawIndexedArgs[] data = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
@@ -160,42 +174,29 @@ public class InstancedFlocking : MonoBehaviour
         //Set buffers data so data is on GPU
         argsBuffer.SetData(data);
 
-        //Init boid buffer
-        boidsBuffer = new ComputeBuffer(numberOfBoids, STRIDE * sizeof(float));
-
-        //Cache data on GPU
-        boidsBuffer.SetData(boidsArray);
+        //Set buffer properties
+        boidShader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
+        boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
 
         //Set boid properties
-        shader.SetInt("_BoidsCount", numberOfBoids);
-        shader.SetFloat("_RotationSpeed", rotationSpeed);
-        shader.SetFloat("_BoidSpeed", boidSpeed);
-        shader.SetFloat("_NeighborDistance", neighbourDistance);
-        shader.SetFloat("_AvoidanceDistance", avoidanceDistance);
-        shader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
-        shader.SetVector("_FlockPosition", target.transform.position);
+        boidShader.SetInt("_BoidsCount", numberOfBoids);
+        boidShader.SetFloat("_RotationSpeed", rotationSpeed);
+        boidShader.SetFloat("_BoidSpeed", boidSpeed);
+        boidShader.SetFloat("_NeighborDistance", neighbourDistance);
+        boidShader.SetFloat("_AvoidanceDistance", avoidanceDistance);
+        boidShader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
+        boidShader.SetVector("_FlockPosition", target.transform.position);
 
         //Set weight properties
-        shader.SetFloat("_AlignmentWeight", alignmentWeight);
-        shader.SetFloat("_CohesionWeight", cohesionWeight);
-        shader.SetFloat("_SeperationWeight", seperationWeight);
-        shader.SetFloat("_AvoidanceWeight", groundAvoidanceWeight);
-        shader.SetFloat("_CorrectionWeight", correctionWeight);
-
-        //Set boundry properties
-        shader.SetFloat("_MaximumRadius", maximumRadius);
-        shader.SetVector("_SphereCenter", transform.position);
+        boidShader.SetFloat("_AlignmentWeight", alignmentWeight);
+        boidShader.SetFloat("_CohesionWeight", cohesionWeight);
+        boidShader.SetFloat("_SeperationWeight", seperationWeight);
+        boidShader.SetFloat("_AvoidanceWeight", groundAvoidanceWeight);
 
         //Set animation properties
-        shader.SetInt("_NumberOfFrames", numberOfFrames);
-        shader.SetFloat("_BoidFrameSpeed", boidFrameSpeed);
-
-        //Set buffer properties
-        shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
-
-        //Set Material properties
-        boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
+        boidShader.SetInt("_NumberOfFrames", numberOfFrames);
         boidMaterial.SetInt("numberOfFrames", numberOfFrames);
+        boidShader.SetFloat("_BoidFrameSpeed", boidFrameSpeed);
 
         //Enabling smooth interpolation between frames in litfowardshader
         if (frameInterpolation && !boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
@@ -207,14 +208,18 @@ public class InstancedFlocking : MonoBehaviour
     private void Update()
     {
         //Update compute shaders uniform time values
-        shader.SetFloat("_Time", Time.time);
-        shader.SetFloat("_DeltaTime", Time.deltaTime);
+        boidShader.SetFloat("_Time", Time.time);
+        boidShader.SetFloat("_DeltaTime", Time.deltaTime);
+
+        //Set verticies 
+
+        //Update shader
+
 
         //Dispatch compute shader to GPU
-        shader.Dispatch(kernelHandle, groupSizeX, 1, 1);
+        boidShader.Dispatch(kernelHandle, groupSizeX, 1, 1);
 
         //Render updated boids
-        //Change to instanced rendering eventually
         Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
     }
     private void GenerateSkinnedAnimationForGPUBuffer()
@@ -249,7 +254,7 @@ public class InstancedFlocking : MonoBehaviour
 
         //Create a new array of vector fours to store vertex data
         Vector4[] vertexAnimationData = new Vector4[vertexCount * numberOfFrames];
-        
+
         //Cache vertex positions of each frame
         for (int i = 0; i < numberOfFrames; ++i)
         {
@@ -284,16 +289,8 @@ public class InstancedFlocking : MonoBehaviour
     private void OnDestroy()
     {
         //Clean buffers on destroy
-        boidsBuffer?.Release();
-        argsBuffer?.Release();
-        vertexAnimationBuffer?.Release();
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, maximumRadius);
+        boidsBuffer?.Dispose();
+        argsBuffer?.Dispose();
+        vertexAnimationBuffer?.Dispose();
     }
 }

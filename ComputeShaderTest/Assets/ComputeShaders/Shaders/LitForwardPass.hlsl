@@ -18,8 +18,8 @@
 struct Boid
 {
     float3 position; 
-    float3 direction; 
-    float noise_offset;
+    float3 velocity; 
+    float noiseOffset;
     float frame;
 	float3 padding;
 };
@@ -188,23 +188,22 @@ Varyings LitPassVertex(Attributes input)
     //Logic for frame interpolation
     #ifdef FRAME_INTERPOLATION
         //Increase frame
-        uint next = boid.frame + 1;
-
-        //Reset clause
-        if (next >= numberOfFrames) 
-            next = 0;
+        uint currentFrame = (uint)boid.frame % numberOfFrames;
+        uint nextFrame = (currentFrame + 1) % numberOfFrames;
 
         //Amount to lerp by
-        float frameInterpolation = frac(boidsBuffer[input.instanceID].frame);
+        float frameInterpolation = frac(currentFrame);
         
         //Lerp between current frame and next frame
-        input.positionOS.xyz = lerp(vertexAnimation[input.vertexID * numberOfFrames + boid.frame],
-        vertexAnimation[input.vertexID * numberOfFrames + next], frameInterpolation);
+        input.positionOS.xyz = lerp(vertexAnimation[input.vertexID * numberOfFrames + currentFrame],
+        vertexAnimation[input.vertexID * numberOfFrames + nextFrame],
+        frameInterpolation);
     #else
-        input.positionOS.xyz = vertexAnimation[input.vertexID * numberOfFrames + boid.frame];
+        uint frameIndex = (uint) boid.frame % numberOfFrames;
+        input.positionOS.xyz = vertexAnimation[input.vertexID * numberOfFrames + frameIndex];
     #endif
 
-    float4x4 mat = create_matrix(boid.position, boid.direction, float3(0.0, 1.0, 0.0));
+    float4x4 mat = create_matrix(boid.position, boid.velocity, float3(0.0, 1.0, 0.0));
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(mul(mat, input.positionOS).xyz);
 

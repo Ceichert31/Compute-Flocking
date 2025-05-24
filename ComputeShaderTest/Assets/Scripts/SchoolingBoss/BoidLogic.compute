@@ -1,5 +1,5 @@
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
+#pragma kernel BoidLogic
 
 struct Boid
 {
@@ -7,7 +7,7 @@ struct Boid
     float3 velocity;
     float noiseOffset;
     float frame;
-	float3 padding;
+    float3 padding;
 };
 
 //Time values
@@ -24,7 +24,7 @@ float _BoidSpeedVariation;
 float3 _FlockPosition;
 
 //Terrain values
-Texture2D<float4> _HeightMap;
+Texture2D<float> _HeightMap;
 SamplerState sampler_HeightMap;
 float _HeightmapResolution;
 float3 _TerrainSize;
@@ -37,63 +37,45 @@ float _AlignmentWeight;
 float _CohesionWeight;
 float _SeperationWeight;
 float _AvoidanceWeight;
-float _CorrectionWeight;
 
 //Animation values
 float _BoidFrameSpeed;
 int _NumberOfFrames;
 
-//Sphere detection
-float _MaximumRadius;
-float3 _SphereCenter;
-
-//Returns whether or not point is within bounds
-bool InsideBounds(float3 currentPos)
+float hash(float n)
 {
-    float xValue = pow(currentPos.x - _SphereCenter.x, 2);
-    float yValue = pow(currentPos.y - _SphereCenter.y, 2);
-    float zValue = pow(currentPos.z - _SphereCenter.z, 2);
-
-    if (xValue + yValue + zValue < pow(_MaximumRadius, 2))
-    {
-        return true;
-    }
-    return false;
-}
-
-float hash( float n )
-{
-	return frac(sin(n)*43758.5453);
+    return frac(sin(n) * 43758.5453);
 }
 
 // The noise function returns a value in the range -1.0f -> 1.0f
-float noise1( float3 x )
+float noise1(float3 x)
 {
-	float3 p = floor(x);
-	float3 f = frac(x);
+    float3 p = floor(x);
+    float3 f = frac(x);
 
-	f       = f*f*(3.0-2.0*f);
-	float n = p.x + p.y*57.0 + 113.0*p.z;
+    f = f * f * (3.0 - 2.0 * f);
+    float n = p.x + p.y * 57.0 + 113.0 * p.z;
 
-	return lerp(lerp(lerp( hash(n+0.0), hash(n+1.0),f.x),
-					lerp( hash(n+57.0), hash(n+58.0),f.x),f.y),
-				lerp(lerp( hash(n+113.0), hash(n+114.0),f.x),
-					lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
+    return lerp(lerp(lerp(hash(n + 0.0), hash(n + 1.0), f.x),
+					lerp(hash(n + 57.0), hash(n + 58.0), f.x), f.y),
+				lerp(lerp(hash(n + 113.0), hash(n + 114.0), f.x),
+					lerp(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
 }
 
 float GetTerrainHeight(float3 worldPos)
 {
     //Convert from world space to UV coord space
-    float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz; 
+    float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz;
     //Sample height value from heightmap 
-    float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0).r;
-    
+    float4 heightColor = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0);
+    float height = heightColor.r;
+
     //Convert back to world space and return
     return height * _TerrainSize.y * 1.7 + _TerrainPosition.y;
 }
 
-[numthreads(256,1,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
+[numthreads(256, 1, 1)]
+void BoidLogic(uint3 id : SV_DispatchThreadID)
 {
     //Cache boid
     Boid boid = _BoidsBuffer[id.x];
@@ -101,8 +83,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 seperation = 0;
     float3 alignment = 0;
     float3 cohesion = _FlockPosition;
-    float3 correction = 0;
-    float3 groundAvoidance = 0; 
+    float3 groundAvoidance = 0;
 
     //Calculate noise to be used for speed variation
     float noise = clamp(noise1(_Time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
@@ -127,20 +108,24 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }
     
     //Check for nearby boids
-    for (uint i = 0; i < (uint)_BoidsCount; ++i)
+    for (uint i = 0; i < (uint) _BoidsCount; ++i)
     {
         //Pass if boid is self
-        if (i == id.x) continue;
+        if (i == id.x)
+            continue;
 
         //Check distance between our boid and nearby boid
-        float3 offset = boid.position - _BoidsBuffer[i].position;
-        float distance = max(length(offset), 0.000001);
-        
+        float dist = distance(boid.position, _BoidsBuffer[i].position);
+
         //If too close
-        if (distance < _NeighborDistance)
+        if (dist < _NeighborDistance)
         {
+            //Calculate Seperation
+            float3 offset = boid.position - _BoidsBuffer[i].position;
+            //Ensure distance isn't zero
+            dist = max(dist, 0.000001);
             //If boid is close, increase seperation vector 
-            seperation += offset * (1.0 / distance - 1.0 / _NeighborDistance);
+            seperation += offset * (1.0 / dist - 1.0 / _NeighborDistance);
 
             //Get the sum of each boids direction
             alignment += _BoidsBuffer[i].velocity;
@@ -158,20 +143,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     alignment *= avg;
     //Remove * to get rid of cyclic behavior (May need future reworks)
-    cohesion *= avg; 
+    cohesion *= avg;
     cohesion = normalize(cohesion - boid.position);
-
-    //If boid is outside of bounds
-    if (!InsideBounds(boid.position))
-    {
-        //Move back towards flock position
-        correction = normalize(_FlockPosition - boid.position);
-    }
 
     //Target direction is sum of all 3 values
     float3 targetDirection = (
-        (alignment * _AlignmentWeight) + (seperation * _SeperationWeight) + (cohesion * _CohesionWeight)
-        + (correction * _CorrectionWeight) + (groundAvoidance * _AvoidanceWeight)
+        (alignment * _AlignmentWeight) + (seperation * _SeperationWeight)
+        + (cohesion * _CohesionWeight) + (groundAvoidance * _AvoidanceWeight)
     );
 
     //Lerp towards target direction

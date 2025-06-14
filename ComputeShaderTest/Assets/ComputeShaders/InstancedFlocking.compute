@@ -103,7 +103,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 cohesion = _FlockPosition;
     float3 correction = 0;
     float3 groundAvoidance = 0; 
-
+    float3 centerOfMass = boid.position;
+    
     //Calculate noise to be used for speed variation
     float noise = clamp(noise1(_Time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
     
@@ -147,6 +148,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
             //Get the sum of each boids position
             cohesion += _BoidsBuffer[i].position;
+            
+            centerOfMass += _BoidsBuffer[i].position;
 
             //Add one to count of nearby boids
             nearbyCount++;
@@ -155,11 +158,16 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     //Calculate average value of alignment and cohesion
     float avg = 1.0 / nearbyCount;
+    
+    //Calculate average
+    float averageCenter = centerOfMass / nearbyCount;
 
     alignment *= avg;
     //Remove * to get rid of cyclic behavior (May need future reworks)
-    cohesion *= avg; 
-    cohesion = normalize(cohesion - boid.position);
+    cohesion *= avg;
+    
+    //Get direction from our current boid to center of mass
+    cohesion = normalize(averageCenter - boid.position);
 
     //If boid is outside of bounds
     if (!InsideBounds(boid.position))

@@ -87,6 +87,32 @@ public class InstancedFlocking : MonoBehaviour
     GraphicsBuffer argsBuffer;
 
     const int STRIDE = 11;
+    
+    [System.Serializable]
+    public struct DebugData
+    {
+        public Vector3 position;
+        public Vector3 velocity;
+        public float sampledTerrainHeight;
+        public float groundDistance;
+        public float isAvoiding;
+
+        public DebugData(Vector3 pos)
+        {
+            position = pos;
+            velocity = Vector3.zero;
+            sampledTerrainHeight = 0;
+            groundDistance = 0;
+            isAvoiding = 0;
+        }
+    }
+    const int DEBUG_STRIDE = 9;
+
+    [Header("Debug Settings")]
+    public bool isDebugEnabled;
+    public float debugRayDist = 5.0f;
+    ComputeBuffer debugBuffer;
+    DebugData[] debugArray;
 
     private void Awake()
     {
@@ -119,6 +145,7 @@ public class InstancedFlocking : MonoBehaviour
     void InitBoids()
     {
         boidsArray = new Boid[numberOfBoids];
+        debugArray = new DebugData[numberOfBoids];
 
         //Populate array with boids
         for (int i = 0; i < numberOfBoids; i++)
@@ -134,6 +161,7 @@ public class InstancedFlocking : MonoBehaviour
 
             //Add boid to array
             boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
+            debugArray[i] = new DebugData(Vector3.zero);
         }
     }
     /// <summary>
@@ -202,6 +230,13 @@ public class InstancedFlocking : MonoBehaviour
             boidMaterial.EnableKeyword("FRAME_INTERPOLATION");
         if (!frameInterpolation && boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
             boidMaterial.DisableKeyword("FRAME_INTERPOLATION");
+        
+  
+        //Debug properties
+        debugBuffer = new ComputeBuffer(numberOfBoids, DEBUG_STRIDE * sizeof(float));
+        debugBuffer.SetData(debugArray);
+
+        shader.SetBuffer(kernelHandle, "_DebugBuffer", debugBuffer);
     }
 
     private void Update()
@@ -216,6 +251,10 @@ public class InstancedFlocking : MonoBehaviour
         //Render updated boids
         //Change to instanced rendering eventually
         Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
+        
+        if (!isDebugEnabled) return;
+        //Retrive debug data
+        debugBuffer.GetData(debugArray);
     }
     private void GenerateSkinnedAnimationForGPUBuffer()
     {
@@ -286,6 +325,7 @@ public class InstancedFlocking : MonoBehaviour
         //Clean buffers on destroy
         boidsBuffer?.Release();
         argsBuffer?.Release();
+        debugBuffer?.Release();
         vertexAnimationBuffer?.Release();
     }
 
@@ -295,5 +335,20 @@ public class InstancedFlocking : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
         Gizmos.color = Color.white;
         Gizmos.DrawWireSphere(transform.position, maximumRadius);
+
+        if (isDebugEnabled)
+        {
+            //Render debug visuals for each boid
+            foreach(DebugData data in debugArray) 
+            {
+                //Render velocity and display avoidance
+                Debug.DrawRay(data.position, data.velocity * debugRayDist, data.isAvoiding == 1 ? Color.red : Color.green);
+
+                if (data.isAvoiding == 0) continue;
+
+                //Draw line from boid to sampled ground
+                Debug.DrawLine(data.position, new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), Color.yellow);
+            }
+        }
     }
 }

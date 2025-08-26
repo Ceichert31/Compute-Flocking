@@ -10,6 +10,17 @@ struct Boid
 	float3 padding;
 };
 
+struct DebugData
+{
+    float3 position;
+    float3 velocity;
+    float sampledTerrainHeight;
+    float groundDistance;
+    float isAvoiding;
+};
+
+RWStructuredBuffer<DebugData> _DebugBuffer;
+
 //Time values
 float _Time;
 float _DeltaTime;
@@ -47,7 +58,7 @@ int _NumberOfFrames;
 float _MaximumRadius;
 float3 _SphereCenter;
 
-//Returns whether or not point is within bounds
+//Returns whether point is within bounds
 bool InsideBounds(float3 currentPos)
 {
     float xValue = pow(currentPos.x - _SphereCenter.x, 2);
@@ -98,6 +109,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Cache boid
     Boid boid = _BoidsBuffer[id.x];
 
+    DebugData debugData = _DebugBuffer[id.x];
+
     float3 seperation = 0;
     float3 alignment = 0;
     float3 cohesion = _FlockPosition;
@@ -120,11 +133,20 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Calculate distance from ground
     float groundDist = (boid.position.y - sampledHeight);
 
+    debugData.position = boid.position;
+    debugData.groundDistance = groundDist;
+    debugData.sampledTerrainHeight = sampledHeight;
+    
     //If too close to ground, increase avoidance
     if (groundDist < _AvoidanceDistance)
     {
         float avoidanceStrength = (_AvoidanceDistance - groundDist) / _AvoidanceDistance;
         groundAvoidance += float3(0, 1, 0) * avoidanceStrength * _AvoidanceWeight;
+        debugData.isAvoiding = 1;
+    }
+    else
+    {
+        debugData.isAvoiding = 0;
     }
     
     //Check for nearby boids
@@ -196,6 +218,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     {
         boid.frame -= _NumberOfFrames;
     }
+
+    debugData.velocity = boid.velocity;
+    _DebugBuffer[id.x] = debugData;
 
     //Apply updates back to buffer
     _BoidsBuffer[id.x] = boid;

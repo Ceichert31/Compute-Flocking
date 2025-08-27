@@ -568,7 +568,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 5000
+  m_ColorTemperature: 4679
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -935,7 +935,8 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: f8efac7ced6e1ee8087c85e00a93ce76, type: 2}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 8821623529969584324, guid: 1e2215fc57c58344997e7fa4f4d62388, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 1e2215fc57c58344997e7fa4f4d62388, type: 3}
@@ -1189,11 +1190,11 @@ MonoBehaviour:
   rotationSpeed: 0.03
   boidSpeed: 12
   boidSpeedVariation: 0.5
-  neighbourDistance: 15
-  avoidanceDistance: 45
-  alignmentWeight: 15
-  cohesionWeight: 35
-  seperationWeight: 25
+  neighbourDistance: 30
+  avoidanceDistance: 30
+  alignmentWeight: 5
+  cohesionWeight: 5
+  seperationWeight: 5
   correctionWeight: 0
   groundAvoidanceWeight: 25
   spawnRadius: 250
@@ -1208,7 +1209,7 @@ MonoBehaviour:
   boidObject: {fileID: 1294871422}
   animationClip: {fileID: 7400000, guid: 3c0f06227faaaf24b9d7495215f892e8, type: 2}
   isDebugEnabled: 1
-  debugRayDist: 5
+  debugRayDist: 3
 --- !u!1001 &2080340339
 PrefabInstance:
   m_ObjectHideFlags: 0

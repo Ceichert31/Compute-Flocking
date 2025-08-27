@@ -46,7 +46,7 @@ float _MaxHeight;
 //Weights
 float _AlignmentWeight;
 float _CohesionWeight;
-float _SeperationWeight;
+float _SeparationWeight;
 float _AvoidanceWeight;
 float _CorrectionWeight;
 
@@ -109,15 +109,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Cache boid
     Boid boid = _BoidsBuffer[id.x];
 
-    DebugData debugData = _DebugBuffer[id.x];
+    DebugData debugData;
 
-    float3 seperation = 0;
+    float3 separation = 0;
     float3 alignment = 0;
-    float3 cohesion = _FlockPosition;
+    float3 cohesion = 0;
     float3 correction = 0;
-    float3 groundAvoidance = 0; 
-    float3 centerOfMass = boid.position;
-    
+    float3 groundAvoidance = 0;
+
     //Calculate noise to be used for speed variation
     float noise = clamp(noise1(_Time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
     
@@ -155,23 +154,25 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         //Pass if boid is self
         if (i == id.x) continue;
 
-        //Check distance between our boid and nearby boid
-        float3 offset = boid.position - _BoidsBuffer[i].position;
+        //Calculate the direction from our boid to other boid
+        float3 offset = _BoidsBuffer[i].position - boid.position;
+
+        //Cache the length of the direction vector
         float distance = max(length(offset), 0.000001);
         
-        //If too close
+        //If within neighboring distance
         if (distance < _NeighborDistance)
         {
-            //If boid is close, increase seperation vector 
-            seperation += offset * (1.0 / distance - 1.0 / _NeighborDistance);
-
-            //Get the sum of each boids direction
-            alignment += _BoidsBuffer[i].velocity;
-
             //Get the sum of each boids position
             cohesion += _BoidsBuffer[i].position;
             
-            centerOfMass += _BoidsBuffer[i].position;
+            //If boid is close, increase separation vector 
+            separation += offset * (1.0 / distance - 1.0 / _NeighborDistance);
+
+            //Get the sum of each boids direction
+            alignment += _BoidsBuffer[i].velocity;
+            
+            //centerOfMass += _BoidsBuffer[i].position;
 
             //Add one to count of nearby boids
             nearbyCount++;
@@ -180,16 +181,29 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     //Calculate average value of alignment and cohesion
     float avg = 1.0 / nearbyCount;
-    
-    //Calculate average
-    float averageCenter = centerOfMass / nearbyCount;
 
     alignment *= avg;
+
+    //Calculate center of mass
+    float3 centerOfMass = boid.position / nearbyCount;
+
+    cohesion = (boid.position * centerOfMass) / _NeighborDistance;
+    
+    //Calculate force to move towards center of mass
+    /*if (boid.position * centerOfMass > _NeighborDistance)
+    {
+        cohesion *= 0;
+    }*/
+    
+    //Calculate average
+    //float averageCenter = centerOfMass / nearbyCount;
+
+ 
     //Remove * to get rid of cyclic behavior (May need future reworks)
-    cohesion *= avg;
+    
     
     //Get direction from our current boid to center of mass
-    cohesion = normalize(averageCenter - boid.position);
+    //cohesion = normalize(averageCenter - boid.position);
 
     //If boid is outside of bounds
     if (!InsideBounds(boid.position))
@@ -200,7 +214,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     //Target direction is sum of all 3 values
     float3 targetDirection = (
-        (alignment * _AlignmentWeight) + (seperation * _SeperationWeight) + (cohesion * _CohesionWeight)
+        (alignment * _AlignmentWeight) + (separation * _SeparationWeight) + (cohesion * _CohesionWeight)
         + (correction * _CorrectionWeight) + (groundAvoidance * _AvoidanceWeight)
     );
 

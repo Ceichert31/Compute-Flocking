@@ -336,7 +336,7 @@ public class InstancedFlocking : MonoBehaviour
         Gizmos.color = Color.white;
         Gizmos.DrawWireSphere(transform.position, maximumRadius);
 
-        if (isDebugEnabled)
+        if (isDebugEnabled && debugArray != null)
         {
             //Render debug visuals for each boid
             foreach(DebugData data in debugArray) 

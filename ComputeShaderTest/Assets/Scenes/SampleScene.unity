@@ -1188,7 +1188,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boidsCount: 3000
   rotationSpeed: 0.03
-  boidSpeed: 1
+  boidSpeed: 10
   boidSpeedVariation: 0.5
   neighbourDistance: 30
   avoidanceDistance: 30
@@ -1225,6 +1225,10 @@ PrefabInstance:
     - target: {fileID: 2390676662645113971, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
       propertyPath: m_Name
       value: FPSMovement
+      objectReference: {fileID: 0}
+    - target: {fileID: 3248259657647873371, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4184258596113817863, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
       propertyPath: m_LocalPosition.x

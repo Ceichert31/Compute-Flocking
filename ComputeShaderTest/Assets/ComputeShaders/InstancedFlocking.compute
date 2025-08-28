@@ -147,6 +147,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     {
         debugData.isAvoiding = 0;
     }
+    float3 centerOfMass = 0;
     
     //Check for nearby boids
     for (uint i = 0; i < (uint)_BoidsCount; ++i)
@@ -159,6 +160,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
         //Cache the length of the direction vector
         float distance = max(length(offset), 0.000001);
+
         
         //If within neighboring distance
         if (distance < _NeighborDistance)
@@ -171,8 +173,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
             //Get the sum of each boids direction
             alignment += _BoidsBuffer[i].velocity;
-            
-            //centerOfMass += _BoidsBuffer[i].position;
+
+            centerOfMass += _BoidsBuffer[i].position;
 
             //Add one to count of nearby boids
             nearbyCount++;
@@ -185,11 +187,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     alignment *= avg;
 
     //Calculate center of mass
-    float3 centerOfMass = boid.position / nearbyCount;
+    //float3 centerOfMass = boid.position / nearbyCount;
 
     bool isLessThan = boid.position * centerOfMass <= _NeighborDistance;
     
-    cohesion = (boid.position * centerOfMass) * isLessThan / _NeighborDistance;
+    cohesion = (centerOfMass - boid.position) / _NeighborDistance;
     
     //Calculate force to move towards center of mass
     /*if (boid.position * centerOfMass > _NeighborDistance)

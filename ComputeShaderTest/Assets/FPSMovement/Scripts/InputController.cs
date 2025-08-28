@@ -103,7 +103,7 @@ public class InputController : MonoBehaviour
         
         if (transform.TryGetComponent(out Freecam freeCamera))
         {
-            freeCamera.Initialize(ref playerMovement);
+            //freeCamera.Initialize(ref playerMovement);
         }
 
         //To confirm the ray distance is longer than the height offset

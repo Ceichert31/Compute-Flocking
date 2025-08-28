@@ -54,7 +54,7 @@ public class InputController : MonoBehaviour
 
     [SerializeField] private float fovDecayTime = 2f;
 
-    private bool canDash = true;
+    //private bool canDash = true;
 
     //Input References
     private PlayerControls playerControls;
@@ -72,6 +72,16 @@ public class InputController : MonoBehaviour
 
     private Vector2 moveInput;
 
+    private bool isFreecamEnabled;
+    
+    //Freecam steps
+    //Disable gravity
+    //Use Q + E for up and down
+    //Slow players velocity when key is released
+    
+    //Input controller
+    //Try get freecam script on button press
+    
     //Getters
     private bool isGrounded;
     private bool isMoving;
@@ -90,6 +100,11 @@ public class InputController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         cam = GetComponentInChildren<Camera>();
+        
+        if (transform.TryGetComponent(out Freecam freeCamera))
+        {
+            freeCamera.Initialize(playerMovement);
+        }
 
         //To confirm the ray distance is longer than the height offset
         offsetRayDistance += heightOffset;
@@ -121,6 +136,7 @@ public class InputController : MonoBehaviour
     private void Move()
     {
         if (!isGrounded) return;
+        if (isFreecamEnabled) return;
 
         //Check if moving
         isMoving = playerMovement.Move.inProgress;
@@ -177,20 +193,16 @@ public class InputController : MonoBehaviour
         //Set cameras rotation
         cam.transform.eulerAngles = new Vector3(lookRotation, cam.transform.eulerAngles.y, cam.transform.eulerAngles.z);
     }
-
-    private void Dash(InputAction.CallbackContext ctx)
+    
+    private void EnableFreecam(InputAction.CallbackContext ctx)
     {
-        if (!canDash) return;
-
-        canDash = false;
-
-        rb.AddForce(MoveDirection() * dashForce, ForceMode.Impulse);
-
-        fovEventChannel.IncreaseFOV(fovIncrease, fovDecayTime);
-
-        Invoke(nameof(ResetDash), dashCooldown);
+        isFreecamEnabled = !isFreecamEnabled;
+        
+        if (!transform.TryGetComponent(out Freecam freeCameraMode))
+            return;
+        
+        freeCameraMode.EnableFreecam(isFreecamEnabled);
     }
-    private void ResetDash() => canDash = true;
     
     private void OnEnable()
     {

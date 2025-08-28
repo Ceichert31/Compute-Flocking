@@ -187,7 +187,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Calculate center of mass
     float3 centerOfMass = boid.position / nearbyCount;
 
-    cohesion = (boid.position * centerOfMass) / _NeighborDistance;
+    bool isLessThan = boid.position * centerOfMass <= _NeighborDistance;
+    
+    cohesion = (boid.position * centerOfMass) * isLessThan / _NeighborDistance;
     
     //Calculate force to move towards center of mass
     /*if (boid.position * centerOfMass > _NeighborDistance)
@@ -197,25 +199,21 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     //Calculate average
     //float averageCenter = centerOfMass / nearbyCount;
-
- 
-    //Remove * to get rid of cyclic behavior (May need future reworks)
-    
     
     //Get direction from our current boid to center of mass
     //cohesion = normalize(averageCenter - boid.position);
 
-    //If boid is outside of bounds
+    /*//If boid is outside of bounds
     if (!InsideBounds(boid.position))
     {
         //Move back towards flock position
         correction = normalize(_FlockPosition - boid.position);
-    }
+    }*/
 
     //Target direction is sum of all 3 values
     float3 targetDirection = (
         (alignment * _AlignmentWeight) + (separation * _SeparationWeight) + (cohesion * _CohesionWeight)
-        + (correction * _CorrectionWeight) + (groundAvoidance * _AvoidanceWeight)
+        + (groundAvoidance * _AvoidanceWeight)
     );
 
     //Lerp towards target direction

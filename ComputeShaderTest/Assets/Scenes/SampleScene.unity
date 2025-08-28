@@ -1188,7 +1188,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boidsCount: 3000
   rotationSpeed: 0.03
-  boidSpeed: 12
+  boidSpeed: 1
   boidSpeedVariation: 0.5
   neighbourDistance: 30
   avoidanceDistance: 30

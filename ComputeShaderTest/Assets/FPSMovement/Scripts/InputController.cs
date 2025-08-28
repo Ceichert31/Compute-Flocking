@@ -103,7 +103,7 @@ public class InputController : MonoBehaviour
         
         if (transform.TryGetComponent(out Freecam freeCamera))
         {
-            freeCamera.Initialize(playerMovement);
+            freeCamera.Initialize(ref playerMovement);
         }
 
         //To confirm the ray distance is longer than the height offset
@@ -198,24 +198,31 @@ public class InputController : MonoBehaviour
     {
         isFreecamEnabled = !isFreecamEnabled;
         
-        if (!transform.TryGetComponent(out Freecam freeCameraMode))
-            return;
-        
-        freeCameraMode.EnableFreecam(isFreecamEnabled);
+        if (isFreecamEnabled)
+        {
+            if (!transform.TryGetComponent(out Freecam freeCameraMode))
+                return;
+            
+            freeCameraMode.EnableFreecam(isFreecamEnabled);
+            
+            playerMovement.Disable();
+        }
+        else
+        {
+            playerMovement.Enable();
+        }
     }
     
     private void OnEnable()
     {
         playerMovement.Enable();
 
-        //playerMovement.Dash.performed += Dash;
-
+        playerMovement.Freecam.performed += EnableFreecam;
     }
     private void OnDisable()
     {
         playerMovement.Disable();
 
-        //playerMovement.Dash.performed -= Dash;
-
+        playerMovement.Freecam.performed -= EnableFreecam;
     }
 }

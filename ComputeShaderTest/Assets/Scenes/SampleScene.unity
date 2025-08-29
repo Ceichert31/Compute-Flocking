@@ -1191,7 +1191,7 @@ MonoBehaviour:
   boidSpeed: 10
   boidSpeedVariation: 0.5
   neighbourDistance: 30
-  avoidanceDistance: 30
+  avoidanceDistance: 40
   alignmentWeight: 5
   cohesionWeight: 5
   seperationWeight: 5

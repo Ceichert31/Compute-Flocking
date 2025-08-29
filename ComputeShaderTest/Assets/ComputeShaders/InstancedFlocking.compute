@@ -148,6 +148,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         debugData.isAvoiding = 0;
     }
     float3 centerOfMass = 0;
+    float desiredDistance = 10;
     
     //Check for nearby boids
     for (uint i = 0; i < (uint)_BoidsCount; ++i)
@@ -156,11 +157,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         if (i == id.x) continue;
 
         //Calculate the direction from our boid to other boid
-        float3 offset = _BoidsBuffer[i].position - boid.position;
+        float3 direction = _BoidsBuffer[i].position - boid.position;
 
         //Cache the length of the direction vector
-        float distance = max(length(offset), 0.000001);
-
+        float distance = max(length(direction), 0.000001);
         
         //If within neighboring distance
         if (distance < _NeighborDistance)
@@ -169,8 +169,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             cohesion += _BoidsBuffer[i].position;
             
             //If boid is close, increase separation vector 
-            separation += offset * (1.0 / distance - 1.0 / _NeighborDistance);
-
+            //separation += direction * (1.0 / distance - 1.0 / _NeighborDistance);
+            separation += normalize(direction) / distance;
+            
             //Get the sum of each boids direction
             alignment += _BoidsBuffer[i].velocity;
 
@@ -185,32 +186,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float avg = 1.0 / nearbyCount;
 
     alignment *= avg;
+    //bool isLessThan = boid.position * centerOfMass <= _NeighborDistance;
 
-    //Calculate center of mass
-    //float3 centerOfMass = boid.position / nearbyCount;
-
-    bool isLessThan = boid.position * centerOfMass <= _NeighborDistance;
+    separation = max(separation, desiredDistance);
     
     cohesion = (centerOfMass - boid.position) / _NeighborDistance;
-    
-    //Calculate force to move towards center of mass
-    /*if (boid.position * centerOfMass > _NeighborDistance)
-    {
-        cohesion *= 0;
-    }*/
-    
-    //Calculate average
-    //float averageCenter = centerOfMass / nearbyCount;
-    
-    //Get direction from our current boid to center of mass
-    //cohesion = normalize(averageCenter - boid.position);
-
-    /*//If boid is outside of bounds
-    if (!InsideBounds(boid.position))
-    {
-        //Move back towards flock position
-        correction = normalize(_FlockPosition - boid.position);
-    }*/
 
     //Target direction is sum of all 3 values
     float3 targetDirection = (

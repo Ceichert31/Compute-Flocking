@@ -58,6 +58,8 @@ int _NumberOfFrames;
 float _MaximumRadius;
 float3 _SphereCenter;
 
+const float terrainHeightMultiplier = 2.0;
+
 //Returns whether point is within bounds
 bool InsideBounds(float3 currentPos)
 {
@@ -95,12 +97,13 @@ float noise1( float3 x )
 float GetTerrainHeight(float3 worldPos)
 {
     //Convert from world space to UV coord space
-    float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz; 
+    float2 uv = (worldPos.xz - _TerrainPosition.xz) / _TerrainSize.xz;
+    
     //Sample height value from heightmap 
     float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0).r;
     
     //Convert back to world space and return
-    return height * _TerrainSize.y * 1.7 + _TerrainPosition.y;
+    return height * _TerrainSize.y * terrainHeightMultiplier + _TerrainPosition.y;
 }
 
 [numthreads(256,1,1)]

@@ -420,7 +420,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!154 &396974663
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -762,7 +762,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!154 &849759596
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -1205,11 +1205,13 @@ MonoBehaviour:
   boidMesh: {fileID: -5597002278806442958, guid: 7920f1fc1b18ad1469f156913653e076, type: 3}
   boidMaterial: {fileID: 2100000, guid: 8b1f3efd4dcb0104fb9a38aed9d6058d, type: 2}
   target: {fileID: 1775029686}
-  terrain: {fileID: 396974664}
+  terrain: {fileID: 849759597}
   boidObject: {fileID: 1294871422}
   animationClip: {fileID: 7400000, guid: 3c0f06227faaaf24b9d7495215f892e8, type: 2}
   isDebugEnabled: 1
+  isTerrainDebugEnabled: 1
   debugRayDist: 3
+  terrainSampleSphereRadius: 0.3
 --- !u!1001 &2080340339
 PrefabInstance:
   m_ObjectHideFlags: 0

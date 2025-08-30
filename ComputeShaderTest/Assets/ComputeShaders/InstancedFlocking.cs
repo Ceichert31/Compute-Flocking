@@ -55,14 +55,15 @@ public class InstancedFlocking : MonoBehaviour
     [Header("Animator Values")]
     public float boidFrameSpeed = 10f;
     public bool frameInterpolation = true;
-    int numberOfFrames;
+    private int numberOfFrames;
 
     [Header("Boid References")]
     public ComputeShader shader;
     public Mesh boidMesh;
     public Material boidMaterial;
     public Transform target;
-    [SerializeField] Terrain terrain;
+    [SerializeField] 
+    private Terrain terrain;
 
     [Header("Animator References")]
     public GameObject boidObject;
@@ -71,22 +72,22 @@ public class InstancedFlocking : MonoBehaviour
     private Animator animator;
     private SkinnedMeshRenderer boidSMR;
 
-    int kernelHandle;
+    private int kernelHandle;
 
-    ComputeBuffer boidsBuffer;
-    ComputeBuffer vertexAnimationBuffer;
+    private ComputeBuffer boidsBuffer;
+    private ComputeBuffer vertexAnimationBuffer;
 
-    Boid[] boidsArray;
+    private Boid[] boidsArray;
 
-    int groupSizeX;
+    private int groupSizeX;
 
-    int numberOfBoids;
+    private int numberOfBoids;
 
-    RenderParams renderParams;
+    private RenderParams renderParams;
 
-    GraphicsBuffer argsBuffer;
+    private GraphicsBuffer argsBuffer;
 
-    const int STRIDE = 11;
+    private const int STRIDE = 11;
     
     [System.Serializable]
     public struct DebugData
@@ -106,13 +107,14 @@ public class InstancedFlocking : MonoBehaviour
             isAvoiding = 0;
         }
     }
-    const int DEBUG_STRIDE = 9;
+    private const int DEBUG_STRIDE = 9;
 
     [Header("Debug Settings")]
     public bool isDebugEnabled;
+    public bool isTerrainDebugEnabled;
     public float debugRayDist = 5.0f;
-    ComputeBuffer debugBuffer;
-    DebugData[] debugArray;
+    private ComputeBuffer debugBuffer;
+    private DebugData[] debugArray;
 
     private void Awake()
     {
@@ -127,8 +129,10 @@ public class InstancedFlocking : MonoBehaviour
         InitTerrain();
         InitShader();
 
-        renderParams = new RenderParams(boidMaterial);
-        renderParams.worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000);
+        renderParams = new RenderParams(boidMaterial)
+        {
+            worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000)
+        };
     }
 
     void InitTerrain()
@@ -157,7 +161,7 @@ public class InstancedFlocking : MonoBehaviour
             Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
 
             //Random offset
-            float offset = Random.value * 1000.0f;
+            float offset = Random.value * boidsCount;
 
             //Add boid to array
             boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
@@ -329,26 +333,28 @@ public class InstancedFlocking : MonoBehaviour
         vertexAnimationBuffer?.Release();
     }
 
+    [SerializeField]
+    private float terrainSampleSphereRadius = 0.3f;
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.blue;
+        /*Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
         Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, maximumRadius);
+        Gizmos.DrawWireSphere(transform.position, maximumRadius);*/
 
-        if (isDebugEnabled && debugArray != null)
+        if (!isDebugEnabled || debugArray == null) return;
+        //Render debug visuals for each boid
+        foreach(DebugData data in debugArray) 
         {
-            //Render debug visuals for each boid
-            foreach(DebugData data in debugArray) 
-            {
-                //Render velocity and display avoidance
-                Debug.DrawRay(data.position, data.velocity * debugRayDist, data.isAvoiding == 1 ? Color.red : Color.green);
+            //Render velocity and display avoidance
+            Debug.DrawRay(data.position, data.velocity * debugRayDist, data.isAvoiding == 1 ? Color.red : Color.green);
 
-                if (data.isAvoiding == 0) continue;
+            if (!isTerrainDebugEnabled) continue;
 
-                //Draw line from boid to sampled ground
-                Debug.DrawLine(data.position, new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), Color.yellow);
-            }
+            //Draw line from boid to sampled ground
+            Debug.DrawLine(data.position, new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), Color.yellow);
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(new Vector3(data.position.x, data.sampledTerrainHeight, data.position.z), terrainSampleSphereRadius);
         }
     }
 }

@@ -131,8 +131,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     //Calculate distance from ground
     float groundDist = (boid.position.y - sampledHeight);
-
-    debugData.position = boid.position;
+    
     debugData.groundDistance = groundDist;
     debugData.sampledTerrainHeight = sampledHeight;
     
@@ -183,37 +182,38 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }
 
     //Calculate average value of alignment and cohesion
-    float avg = 1.0 / nearbyCount;
+    //float avg = 1.0 / nearbyCount;
 
-    alignment *= avg;
+    alignment /= nearbyCount;
     //bool isLessThan = boid.position * centerOfMass <= _NeighborDistance;
 
     separation = max(separation, desiredDistance);
     
     cohesion = (centerOfMass - boid.position) / _NeighborDistance;
 
-    //Target direction is sum of all 3 values
-    float3 targetDirection = (
+    //Final weighted movement force
+    float3 finalForce = (
         (alignment * _AlignmentWeight) + (separation * _SeparationWeight) + (cohesion * _CohesionWeight)
         + (groundAvoidance * _AvoidanceWeight)
     );
 
     //Lerp towards target direction
-    boid.velocity = lerp(normalize(boid.velocity), targetDirection, _RotationSpeed);
+    boid.velocity = lerp(normalize(boid.velocity), finalForce, _RotationSpeed);
 
     //Set position
-    boid.position += (boid.velocity * velocity * _DeltaTime);
+    boid.position += (boid.velocity * _DeltaTime);
 
     //Update animation
-    boid.frame = boid.frame + velocity * _DeltaTime * _BoidFrameSpeed;
+    boid.frame = boid.frame + boid.velocity * _DeltaTime * _BoidFrameSpeed;
     
     //If reaching end of frames, reset
-    if (boid.frame >= _NumberOfFrames)
+    /*if (boid.frame >= _NumberOfFrames)
     {
         boid.frame -= _NumberOfFrames;
-    }
-
+    }*/
+    boid.frame %= _NumberOfFrames;
     debugData.velocity = boid.velocity;
+    debugData.position = boid.position;
     _DebugBuffer[id.x] = debugData;
 
     //Apply updates back to buffer

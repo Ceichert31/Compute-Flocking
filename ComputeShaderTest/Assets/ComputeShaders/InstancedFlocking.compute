@@ -33,6 +33,7 @@ float _BoidSpeed;
 float _NeighborDistance;
 float _BoidSpeedVariation;
 float3 _FlockPosition;
+float _MaxSeparationSpeed;
 
 //Terrain values
 Texture2D<float4> _HeightMap;
@@ -103,7 +104,7 @@ float GetTerrainHeight(float3 worldPos)
     float height = _HeightMap.SampleLevel(sampler_HeightMap, uv, 0).r;
     
     //Convert back to world space and return
-    return height * _TerrainSize.y * terrainHeightMultiplier + _TerrainPosition.y;
+    return height * _TerrainSize.y * 2.0 + _TerrainPosition.y;
 }
 
 [numthreads(256,1,1)]
@@ -150,7 +151,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         debugData.isAvoiding = 0;
     }
     float3 centerOfMass = 0;
-    float desiredDistance = 10;
     
     //Check for nearby boids
     for (uint i = 0; i < (uint)_BoidsCount; ++i)
@@ -188,26 +188,35 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //float avg = 1.0 / nearbyCount;
 
     alignment /= nearbyCount;
-    //bool isLessThan = boid.position * centerOfMass <= _NeighborDistance;
-
-    separation = max(separation, desiredDistance);
+    
+    separation = max(separation, _MaxSeparationSpeed);
     
     cohesion = (centerOfMass - boid.position) / _NeighborDistance;
+
+    if (!InsideBounds(boid.position))
+    {
+        correction = _SphereCenter - boid.position;
+    }
+    
+    normalize(alignment);
+    normalize(cohesion);
+    normalize(groundAvoidance);
+    normalize(correction);
 
     //Final weighted movement force
     float3 finalForce = (
         (alignment * _AlignmentWeight) + (separation * _SeparationWeight) + (cohesion * _CohesionWeight)
-        + (groundAvoidance * _AvoidanceWeight)
+        + (groundAvoidance * _AvoidanceWeight) + (correction * _CorrectionWeight)
     );
 
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), finalForce, _RotationSpeed);
 
     //Set position
-    boid.position += (boid.velocity * _DeltaTime);
+    boid.position += (boid.velocity * velocity * _DeltaTime);
 
     //Update animation
-    boid.frame = boid.frame + boid.velocity * _DeltaTime * _BoidFrameSpeed;
+    boid.frame = boid.frame + velocity * _DeltaTime * _BoidFrameSpeed;
     
     //If reaching end of frames, reset
     /*if (boid.frame >= _NumberOfFrames)

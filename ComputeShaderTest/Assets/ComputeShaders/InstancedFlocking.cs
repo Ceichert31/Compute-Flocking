@@ -31,6 +31,7 @@ public class InstancedFlocking : MonoBehaviour
     public float rotationSpeed = 1f;
     public float boidSpeed = 1f;
     public float boidSpeedVariation = 1f;
+    public float boidMaxSeparationSpeed = 5f;
 
     [Header("Boid Avoidance Values")]
     public float neighbourDistance = 1f;
@@ -207,6 +208,7 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("_AvoidanceDistance", avoidanceDistance);
         shader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
         shader.SetVector("_FlockPosition", target.transform.position);
+        shader.SetFloat("_MaxSeparationSpeed", boidMaxSeparationSpeed);
 
         //Set weight properties
         shader.SetFloat("_AlignmentWeight", alignmentWeight);
@@ -339,10 +341,11 @@ public class InstancedFlocking : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         /*Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);
+        Gizmos.DrawWireSphere(transform.position, spawnRadius);*/
         Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, maximumRadius);*/
+        Gizmos.DrawWireSphere(transform.position, maximumRadius);
 
+        
         if (!isDebugEnabled || debugArray == null) return;
 
         //Render debug visuals for each boid

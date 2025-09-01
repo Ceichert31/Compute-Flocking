@@ -189,7 +189,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     alignment /= nearbyCount;
     
-    separation = max(separation, _MaxSeparationSpeed);
+    separation = clamp(separation, 0, _MaxSeparationSpeed);
     
     cohesion = (centerOfMass - boid.position) / _NeighborDistance;
 

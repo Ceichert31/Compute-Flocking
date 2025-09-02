@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -25,6 +26,24 @@ public class InstancedFlocking : MonoBehaviour
         }
     }
 
+    public struct DebugData
+    {
+        public Vector3 position;
+        public Vector3 velocity;
+        public float sampledTerrainHeight;
+        public float groundDistance;
+        public float isAvoiding;
+
+        public DebugData(Vector3 pos)
+        {
+            position = pos;
+            velocity = Vector3.zero;
+            sampledTerrainHeight = 0;
+            groundDistance = 0;
+            isAvoiding = 0;
+        }
+    }
+
     [Header("Boid General Settings")]
     public int boidsCount;
 
@@ -40,7 +59,12 @@ public class InstancedFlocking : MonoBehaviour
 
     [Header("Boid Weights")]
     [Range(0, 1000f)]
-    public float alignmentWeight;
+    public float AlignmentWeight
+    {
+        get => _alignmentWeight;
+        set { _alignmentWeight = value; }
+    }
+    private float _alignmentWeight;
 
     [Range(0, 1000f)]
     public float cohesionWeight;
@@ -97,25 +121,6 @@ public class InstancedFlocking : MonoBehaviour
 
     private const int STRIDE = 11;
 
-    [System.Serializable]
-    public struct DebugData
-    {
-        public Vector3 position;
-        public Vector3 velocity;
-        public float sampledTerrainHeight;
-        public float groundDistance;
-        public float isAvoiding;
-
-        public DebugData(Vector3 pos)
-        {
-            position = pos;
-            velocity = Vector3.zero;
-            sampledTerrainHeight = 0;
-            groundDistance = 0;
-            isAvoiding = 0;
-        }
-    }
-
     private const int DEBUG_STRIDE = 9;
 
     [Header("Debug Settings")]
@@ -125,6 +130,29 @@ public class InstancedFlocking : MonoBehaviour
     public float debugRayDist = 5.0f;
     private ComputeBuffer debugBuffer;
     private DebugData[] debugArray;
+
+    /// <summary>
+    /// Updates a property in the shader
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="property"></param>
+    private void PropertyChanged<T>(T property)
+    {
+        switch (property)
+        {
+            case float:
+                shader.SetFloat(nameof(property), (float)(object)property);
+                break;
+
+            case int:
+                shader.SetInt(nameof(property), (int)(object)property);
+                break;
+
+            case string:
+                shader.SetVector(nameof(property), (Vector3)(object)property);
+                break;
+        }
+    }
 
     private void Awake()
     {
@@ -138,6 +166,8 @@ public class InstancedFlocking : MonoBehaviour
         GenerateSkinnedAnimationForGPUBuffer();
         InitTerrain();
         InitShader();
+
+        PropertyChanged(AlignmentWeight);
 
         renderParams = new RenderParams(boidMaterial)
         {
@@ -224,7 +254,7 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("_MaxSeparationSpeed", boidMaxSeparationSpeed);
 
         //Set weight properties
-        shader.SetFloat("_AlignmentWeight", alignmentWeight);
+        shader.SetFloat("_AlignmentWeight", AlignmentWeight);
         shader.SetFloat("_CohesionWeight", cohesionWeight);
         shader.SetFloat("_SeperationWeight", seperationWeight);
         shader.SetFloat("_AvoidanceWeight", groundAvoidanceWeight);

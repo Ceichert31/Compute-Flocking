@@ -57,30 +57,89 @@ public class InstancedFlocking : MonoBehaviour
     public float avoidanceDistance = 3f;
 
     [Header("Boid Weights")]
-    [Range(0, 1000f)]
+    /// <summary>
+    /// The force at which boids match their velocity
+    /// with other nearby boids
+    /// </summary>
     public float AlignmentWeight
     {
         get => _alignmentWeight;
-        set { PropertyChanged(ref _alignmentWeight, value); }
+        set => PropertyChanged(ref _alignmentWeight, value);
     }
+
+    /// <summary>
+    /// <inheritdoc cref="AlignmentWeight"/>
+    /// </summary>
+    [Range(0, 1000f)]
+    [SerializeField]
     private float _alignmentWeight;
 
-    [Range(0, 1000f)]
+    /// <summary>
+    /// The force at which boids move towards large groups of boids
+    /// </summary>
     public float CohesionWeight
     {
         get => _cohesionWeight;
-        set { PropertyChanged(ref _cohesionWeight, value); }
+        set => PropertyChanged(ref _cohesionWeight, value);
     }
+
+    /// <summary>
+    /// <inheritdoc cref="CohesionWeight"/>
+    /// </summary>
+    [Range(0, 1000f)]
+    [SerializeField]
     private float _cohesionWeight;
 
-    [Range(0, 1000f)]
-    public float seperationWeight;
+    /// <summary>
+    /// The force at which boids move away from each
+    /// other after coming in close contact
+    /// </summary>
+    public float SeperationWeight
+    {
+        get => _seperationWeight;
+        set => PropertyChanged(ref _seperationWeight, value);
+    }
 
+    /// <summary>
+    /// <inheritdoc cref="SeperationWeight"/>
+    /// </summary>
     [Range(0, 1000f)]
-    public float correctionWeight;
+    [SerializeField]
+    private float _seperationWeight;
 
+    /// <summary>
+    /// The force at which a boid returns towards
+    /// the center of the flock after going out of bounds
+    /// </summary>
+    public float CorrectionWeight
+    {
+        get => _correctionWeight;
+        set => PropertyChanged(ref _correctionWeight, value);
+    }
+
+    /// <summary>
+    /// <inheritdoc cref="CorrectionWeight"/>
+    /// </summary>
     [Range(0, 1000f)]
-    public float groundAvoidanceWeight;
+    [SerializeField]
+    private float _correctionWeight;
+
+    /// <summary>
+    /// The force at which a boid moves
+    /// away from the ground
+    /// </summary>
+    public float GroundAvoidanceWeight
+    {
+        get => _groundAvoidanceWeight;
+        set => PropertyChanged(ref _groundAvoidanceWeight, value);
+    }
+
+    /// <summary>
+    /// <inheritdoc cref="GroundAvoidanceWeight"/>
+    /// </summary>
+    [Range(0, 1000f)]
+    [SerializeField]
+    private float _groundAvoidanceWeight;
 
     [Header("Boundry Values")]
     public float spawnRadius;
@@ -262,9 +321,9 @@ public class InstancedFlocking : MonoBehaviour
         //Set weight properties
         shader.SetFloat("_AlignmentWeight", AlignmentWeight);
         shader.SetFloat("_CohesionWeight", CohesionWeight);
-        shader.SetFloat("_SeperationWeight", seperationWeight);
-        shader.SetFloat("_AvoidanceWeight", groundAvoidanceWeight);
-        shader.SetFloat("_CorrectionWeight", correctionWeight);
+        shader.SetFloat("_SeperationWeight", SeperationWeight);
+        shader.SetFloat("_AvoidanceWeight", GroundAvoidanceWeight);
+        shader.SetFloat("_CorrectionWeight", CorrectionWeight);
 
         //Set boundry properties
         shader.SetFloat("_MaximumRadius", maximumRadius);

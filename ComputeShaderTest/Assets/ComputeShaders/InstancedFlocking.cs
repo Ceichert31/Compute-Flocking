@@ -20,7 +20,8 @@ public class InstancedFlocking : MonoBehaviour
             velocity = vel;
             noiseOffset = noise;
             frame = 0;
-            padding.x = 0; padding.y = padding.z = 0;
+            padding.x = 0;
+            padding.y = padding.z = 0;
         }
     }
 
@@ -40,12 +41,16 @@ public class InstancedFlocking : MonoBehaviour
     [Header("Boid Weights")]
     [Range(0, 1000f)]
     public float alignmentWeight;
+
     [Range(0, 1000f)]
     public float cohesionWeight;
+
     [Range(0, 1000f)]
     public float seperationWeight;
+
     [Range(0, 1000f)]
     public float correctionWeight;
+
     [Range(0, 1000f)]
     public float groundAvoidanceWeight;
 
@@ -63,11 +68,13 @@ public class InstancedFlocking : MonoBehaviour
     public Mesh boidMesh;
     public Material boidMaterial;
     public Transform target;
-    [SerializeField] 
+
+    [SerializeField]
     private Terrain terrain;
 
     [Header("Animator References")]
     public GameObject boidObject;
+
     [Tooltip("Animation we want to use")]
     public AnimationClip animationClip;
     private Animator animator;
@@ -89,7 +96,7 @@ public class InstancedFlocking : MonoBehaviour
     private GraphicsBuffer argsBuffer;
 
     private const int STRIDE = 11;
-    
+
     [System.Serializable]
     public struct DebugData
     {
@@ -108,9 +115,11 @@ public class InstancedFlocking : MonoBehaviour
             isAvoiding = 0;
         }
     }
+
     private const int DEBUG_STRIDE = 9;
 
     [Header("Debug Settings")]
+    [Tooltip("WARNING! Will affect performance")]
     public bool isDebugEnabled;
     public bool isTerrainDebugEnabled;
     public float debugRayDist = 5.0f;
@@ -132,11 +141,12 @@ public class InstancedFlocking : MonoBehaviour
 
         renderParams = new RenderParams(boidMaterial)
         {
-            worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000)
+            worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000),
         };
     }
 
     private float[,] heights;
+
     void InitTerrain()
     {
         shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
@@ -158,7 +168,7 @@ public class InstancedFlocking : MonoBehaviour
         {
             //Random boid spawn pos
             Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
-            
+
             //Random boid rotation
             Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
 
@@ -170,8 +180,9 @@ public class InstancedFlocking : MonoBehaviour
             debugArray[i] = new DebugData(Vector3.zero);
         }
     }
+
     /// <summary>
-    /// Creates a compute buffer 
+    /// Creates a compute buffer
     /// </summary>
     void InitShader()
     {
@@ -183,7 +194,9 @@ public class InstancedFlocking : MonoBehaviour
         );
 
         //Create data buffer object
-        GraphicsBuffer.IndirectDrawIndexedArgs[] data = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
+        GraphicsBuffer.IndirectDrawIndexedArgs[] data = new GraphicsBuffer.IndirectDrawIndexedArgs[
+            1
+        ];
 
         //Set indexCountPerInstance to vertex count of boid mesh
         data[0].indexCountPerInstance = boidMesh.GetIndexCount(0);
@@ -237,8 +250,7 @@ public class InstancedFlocking : MonoBehaviour
             boidMaterial.EnableKeyword("FRAME_INTERPOLATION");
         if (!frameInterpolation && boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
             boidMaterial.DisableKeyword("FRAME_INTERPOLATION");
-        
-  
+
         //Debug properties
         debugBuffer = new ComputeBuffer(numberOfBoids, DEBUG_STRIDE * sizeof(float));
         debugBuffer.SetData(debugArray);
@@ -258,11 +270,13 @@ public class InstancedFlocking : MonoBehaviour
         //Render updated boids
         //Change to instanced rendering eventually
         Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
-        
-        if (!isDebugEnabled) return;
+
+        if (!isDebugEnabled)
+            return;
         //Retrive debug data
         debugBuffer.GetData(debugArray);
     }
+
     private void GenerateSkinnedAnimationForGPUBuffer()
     {
         //Get skinned mesh renderer from prefab
@@ -284,7 +298,9 @@ public class InstancedFlocking : MonoBehaviour
 
         //Calculate the number of frames in the animation
         //We use closest power of two because we will be using this value often
-        numberOfFrames = Mathf.ClosestPowerOfTwo((int)(animationClip.frameRate * animationClip.length));
+        numberOfFrames = Mathf.ClosestPowerOfTwo(
+            (int)(animationClip.frameRate * animationClip.length)
+        );
 
         //Calculate time per frame
         float perFrameTime = animationClip.length / numberOfFrames;
@@ -295,7 +311,7 @@ public class InstancedFlocking : MonoBehaviour
 
         //Create a new array of vector fours to store vertex data
         Vector4[] vertexAnimationData = new Vector4[vertexCount * numberOfFrames];
-        
+
         //Cache vertex positions of each frame
         for (int i = 0; i < numberOfFrames; ++i)
         {
@@ -338,6 +354,7 @@ public class InstancedFlocking : MonoBehaviour
 
     [SerializeField]
     private float terrainSampleSphereRadius = 0.3f;
+
     private void OnDrawGizmosSelected()
     {
         /*Gizmos.color = Color.blue;
@@ -345,23 +362,42 @@ public class InstancedFlocking : MonoBehaviour
         Gizmos.color = Color.white;
         Gizmos.DrawWireSphere(transform.position, maximumRadius);
 
-        
-        if (!isDebugEnabled || debugArray == null) return;
+        if (!isDebugEnabled || debugArray == null)
+            return;
 
         //Render debug visuals for each boid
         for (int i = 0; i < debugArray.Length; ++i)
         {
             //Render velocity and display avoidance
-            Debug.DrawRay(debugArray[i].position, debugArray[i].velocity * debugRayDist, debugArray[i].isAvoiding == 1 ? Color.red : Color.green);
+            Debug.DrawRay(
+                debugArray[i].position,
+                debugArray[i].velocity * debugRayDist,
+                debugArray[i].isAvoiding == 1 ? Color.red : Color.green
+            );
 
-            if (!isTerrainDebugEnabled) continue;
+            if (!isTerrainDebugEnabled)
+                continue;
 
             //Draw line from boid to sampled ground
             if (debugArray[i].isAvoiding == 1)
-                Debug.DrawLine(debugArray[i].position, new Vector3(debugArray[i].position.x, debugArray[i].sampledTerrainHeight, debugArray[i].position.z), Color.yellow);
+                Debug.DrawLine(
+                    debugArray[i].position,
+                    new Vector3(
+                        debugArray[i].position.x,
+                        debugArray[i].sampledTerrainHeight,
+                        debugArray[i].position.z
+                    ),
+                    Color.yellow
+                );
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(new Vector3(debugArray[i].position.x, debugArray[i].sampledTerrainHeight, debugArray[i].position.z), terrainSampleSphereRadius);
+            Gizmos.DrawSphere(
+                new Vector3(
+                    debugArray[i].position.x,
+                    debugArray[i].sampledTerrainHeight,
+                    debugArray[i].position.z
+                ),
+                terrainSampleSphereRadius
+            );
         }
-
     }
 }

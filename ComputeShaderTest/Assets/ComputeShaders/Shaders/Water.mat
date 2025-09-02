@@ -68,9 +68,9 @@ Material:
     - _CastShadows: 0
     - _Cull: 2
     - _DstBlend: 10
-    - _FoamAmount: 20
+    - _FoamAmount: 3
     - _FoamCutOff: 1
-    - _FoamScale: 1250
+    - _FoamScale: 7000
     - _FoamSpeed: 0.1
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -87,9 +87,9 @@ Material:
     - Color_36218622185947c6a5ae36366d8e21d8: {r: 0.03921569, g: 0.09803919, b: 0.27450976, a: 0.7058824}
     - Color_93e06cd551a5449091bcde90b46765a0: {r: 0.03804734, g: 0.5490196, b: 0.5490196, a: 0.1960784}
     - Vector2_4351ac2be1d74054986ec5378db9d578: {r: 10, g: 10, b: 0, a: 0}
-    - _Deep_Water: {r: 0.27999282, g: 0.29913583, b: 0.49056596, a: 0.90588236}
+    - _Deep_Water: {r: 0.15730688, g: 0.3301887, b: 0.2581546, a: 0.90588236}
     - _FoamColour: {r: 0.4804646, g: 0.51734453, b: 0.5566038, a: 1}
-    - _Shallow_Water: {r: 0.34976864, g: 0.36544037, b: 0.5660378, a: 1}
+    - _Shallow_Water: {r: 0.2551175, g: 0.46226418, b: 0.37752238, a: 0.2784314}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &5798059541675849526

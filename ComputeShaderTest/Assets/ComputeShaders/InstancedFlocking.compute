@@ -136,6 +136,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     debugData.groundDistance = groundDist;
     debugData.sampledTerrainHeight = sampledHeight;
+    debugData.isAvoiding = 0;
     
     //If too close to ground, increase avoidance
     if (groundDist < _avoidanceDistance)
@@ -144,10 +145,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         groundAvoidance += float3(0, 1, 0) * avoidanceStrength * _avoidanceWeight;
         debugData.isAvoiding = 1;
     }
-    else
-    {
-        debugData.isAvoiding = 0;
-    }
+    
     float3 centerOfMass = 0;
     
     //Check for nearby boids
@@ -169,8 +167,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             cohesion += _boidsBuffer[i].position;
             
             //If boid is close, increase separation vector 
-            //separation += direction * (1.0 / distance - 1.0 / _NeighborDistance);
-            separation += normalize(direction) / distance;
+            separation += direction * (1.0 / distance - 1.0 / _neighborDistance);
+            //separation += normalize(direction) / distance - (1.0 / _neighborDistance);
             
             //Get the sum of each boids direction
             alignment += _boidsBuffer[i].velocity;
@@ -198,8 +196,8 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     normalize(alignment);
     normalize(cohesion);
-    normalize(groundAvoidance);
-    normalize(correction);
+    //normalize(groundAvoidance);
+    //normalize(correction);
 
     //Final weighted movement force
     float3 finalForce = (
@@ -216,11 +214,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Update animation
     boid.frame = boid.frame + velocity * _deltaTime * _boidFrameSpeed;
     
-    //If reaching end of frames, reset
-    /*if (boid.frame >= _NumberOfFrames)
-    {
-        boid.frame -= _NumberOfFrames;
-    }*/
     boid.frame %= _numberOfFrames;
     debugData.velocity = boid.velocity;
     debugData.position = boid.position;

@@ -216,7 +216,7 @@ public class InstancedFlocking : MonoBehaviour
                 break;
 
             case string:
-                shader.SetVector(nameof(property), (Vector3)(object)property);
+                shader.SetVector(nameof(property), (Vector3)(property as object));
                 break;
         }
     }
@@ -236,7 +236,7 @@ public class InstancedFlocking : MonoBehaviour
 
         renderParams = new RenderParams(boidMaterial)
         {
-            worldBounds = new Bounds(Vector3.zero, Vector3.one * 1000),
+            worldBounds = new Bounds(Vector3.zero, Vector3.one * 10000),
         };
     }
 
@@ -464,7 +464,7 @@ public class InstancedFlocking : MonoBehaviour
             //Render velocity and display avoidance
             Debug.DrawRay(
                 debugArray[i].position,
-                debugArray[i].velocity * debugRayDist,
+                debugArray[i].velocity.normalized * debugRayDist,
                 debugArray[i].isAvoiding == 1 ? Color.red : Color.green
             );
 
@@ -472,7 +472,7 @@ public class InstancedFlocking : MonoBehaviour
                 continue;
 
             //Draw line from boid to sampled ground
-            if (debugArray[i].isAvoiding == 1)
+            /*if (debugArray[i].isAvoiding == 1)
                 Debug.DrawLine(
                     debugArray[i].position,
                     new Vector3(
@@ -481,7 +481,7 @@ public class InstancedFlocking : MonoBehaviour
                         debugArray[i].position.z
                     ),
                     Color.yellow
-                );
+                );*/
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(
                 new Vector3(

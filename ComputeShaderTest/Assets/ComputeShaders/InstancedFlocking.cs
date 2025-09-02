@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class InstancedFlocking : MonoBehaviour
 {
@@ -62,12 +61,17 @@ public class InstancedFlocking : MonoBehaviour
     public float AlignmentWeight
     {
         get => _alignmentWeight;
-        set { _alignmentWeight = value; }
+        set { PropertyChanged(ref _alignmentWeight, value); }
     }
     private float _alignmentWeight;
 
     [Range(0, 1000f)]
-    public float cohesionWeight;
+    public float CohesionWeight
+    {
+        get => _cohesionWeight;
+        set { PropertyChanged(ref _cohesionWeight, value); }
+    }
+    private float _cohesionWeight;
 
     [Range(0, 1000f)]
     public float seperationWeight;
@@ -136,8 +140,12 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="property"></param>
-    private void PropertyChanged<T>(T property)
+    private void PropertyChanged<T>(ref T property, object value)
     {
+        //Set property
+        property = (T)value;
+
+        //Update in shader
         switch (property)
         {
             case float:
@@ -166,8 +174,6 @@ public class InstancedFlocking : MonoBehaviour
         GenerateSkinnedAnimationForGPUBuffer();
         InitTerrain();
         InitShader();
-
-        PropertyChanged(AlignmentWeight);
 
         renderParams = new RenderParams(boidMaterial)
         {
@@ -255,7 +261,7 @@ public class InstancedFlocking : MonoBehaviour
 
         //Set weight properties
         shader.SetFloat("_AlignmentWeight", AlignmentWeight);
-        shader.SetFloat("_CohesionWeight", cohesionWeight);
+        shader.SetFloat("_CohesionWeight", CohesionWeight);
         shader.SetFloat("_SeperationWeight", seperationWeight);
         shader.SetFloat("_AvoidanceWeight", groundAvoidanceWeight);
         shader.SetFloat("_CorrectionWeight", correctionWeight);

@@ -37,7 +37,7 @@ float _maxSeparationSpeed;
 
 //Terrain values
 Texture2D<float4> _heightMap;
-SamplerState sampler_HeightMap;
+SamplerState sampler_heightMap;
 float _heightmapResolution;
 float3 _terrainSize;
 float3 _terrainPosition;
@@ -99,7 +99,7 @@ float GetTerrainHeight(float3 worldPos)
     float2 uv = (worldPos.xz - _terrainPosition.xz) / _terrainSize.xz;
     
     //Sample height value from heightmap 
-    float height = _heightMap.SampleLevel(sampler_HeightMap, uv, 0).r;
+    float height = _heightMap.SampleLevel(sampler_heightMap, uv, 0).r;
     
     //Convert back to world space and return
     return height * _terrainSize.y * 2.0 + _terrainPosition.y;

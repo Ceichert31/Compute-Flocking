@@ -240,8 +240,6 @@ public class InstancedFlocking : MonoBehaviour
         };
     }
 
-    private float[,] heights;
-
     void InitTerrain()
     {
         shader.SetTexture(kernelHandle, "_heightMap", terrain.terrainData.heightmapTexture);

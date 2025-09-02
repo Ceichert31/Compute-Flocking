@@ -244,10 +244,10 @@ public class InstancedFlocking : MonoBehaviour
 
     void InitTerrain()
     {
-        shader.SetTexture(kernelHandle, "_HeightMap", terrain.terrainData.heightmapTexture);
-        shader.SetFloat("_HeightmapResolution", terrain.terrainData.heightmapResolution);
-        shader.SetVector("_TerrainSize", terrain.terrainData.size);
-        shader.SetVector("_TerrainPosition", terrain.transform.position);
+        shader.SetTexture(kernelHandle, "_heightMap", terrain.terrainData.heightmapTexture);
+        shader.SetFloat("_heightmapResolution", terrain.terrainData.heightmapResolution);
+        shader.SetVector("_terrainSize", terrain.terrainData.size);
+        shader.SetVector("_terrainPosition", terrain.transform.position);
     }
 
     /// <summary>
@@ -309,32 +309,32 @@ public class InstancedFlocking : MonoBehaviour
         boidsBuffer.SetData(boidsArray);
 
         //Set boid properties
-        shader.SetInt("_BoidsCount", numberOfBoids);
-        shader.SetFloat("_RotationSpeed", rotationSpeed);
-        shader.SetFloat("_BoidSpeed", boidSpeed);
-        shader.SetFloat("_NeighborDistance", neighbourDistance);
-        shader.SetFloat("_AvoidanceDistance", avoidanceDistance);
-        shader.SetFloat("_BoidSpeedVariation", boidSpeedVariation);
-        shader.SetVector("_FlockPosition", target.transform.position);
-        shader.SetFloat("_MaxSeparationSpeed", boidMaxSeparationSpeed);
+        shader.SetInt("_boidsCount", numberOfBoids);
+        shader.SetFloat("_rotationSpeed", rotationSpeed);
+        shader.SetFloat("_boidSpeed", boidSpeed);
+        shader.SetFloat("_neighborDistance", neighbourDistance);
+        shader.SetFloat("_avoidanceDistance", avoidanceDistance);
+        shader.SetFloat("_boidSpeedVariation", boidSpeedVariation);
+        shader.SetVector("_flockPosition", target.transform.position);
+        shader.SetFloat("_maxSeparationSpeed", boidMaxSeparationSpeed);
 
         //Set weight properties
-        shader.SetFloat("_AlignmentWeight", AlignmentWeight);
-        shader.SetFloat("_CohesionWeight", CohesionWeight);
-        shader.SetFloat("_SeperationWeight", SeperationWeight);
-        shader.SetFloat("_AvoidanceWeight", GroundAvoidanceWeight);
-        shader.SetFloat("_CorrectionWeight", CorrectionWeight);
+        shader.SetFloat("_alignmentWeight", AlignmentWeight);
+        shader.SetFloat("_cohesionWeight", CohesionWeight);
+        shader.SetFloat("_seperationWeight", SeperationWeight);
+        shader.SetFloat("_avoidanceWeight", GroundAvoidanceWeight);
+        shader.SetFloat("_correctionWeight", CorrectionWeight);
 
         //Set boundry properties
-        shader.SetFloat("_MaximumRadius", maximumRadius);
-        shader.SetVector("_SphereCenter", transform.position);
+        shader.SetFloat("_maximumRadius", maximumRadius);
+        shader.SetVector("_sphereCenter", transform.position);
 
         //Set animation properties
-        shader.SetInt("_NumberOfFrames", numberOfFrames);
-        shader.SetFloat("_BoidFrameSpeed", boidFrameSpeed);
+        shader.SetInt("_numberOfFrames", numberOfFrames);
+        shader.SetFloat("_boidFrameSpeed", boidFrameSpeed);
 
         //Set buffer properties
-        shader.SetBuffer(kernelHandle, "_BoidsBuffer", boidsBuffer);
+        shader.SetBuffer(kernelHandle, "_boidsBuffer", boidsBuffer);
 
         //Set Material properties
         boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
@@ -350,14 +350,14 @@ public class InstancedFlocking : MonoBehaviour
         debugBuffer = new ComputeBuffer(numberOfBoids, DEBUG_STRIDE * sizeof(float));
         debugBuffer.SetData(debugArray);
 
-        shader.SetBuffer(kernelHandle, "_DebugBuffer", debugBuffer);
+        shader.SetBuffer(kernelHandle, "_debugBuffer", debugBuffer);
     }
 
     private void Update()
     {
         //Update compute shaders uniform time values
-        shader.SetFloat("_Time", Time.time);
-        shader.SetFloat("_DeltaTime", Time.deltaTime);
+        shader.SetFloat("_time", Time.time);
+        shader.SetFloat("_deltaTime", Time.deltaTime);
 
         //Dispatch compute shader to GPU
         shader.Dispatch(kernelHandle, groupSizeX, 1, 1);

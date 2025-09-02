@@ -2844,11 +2844,11 @@ MonoBehaviour:
   boidMaxSeparationSpeed: 50
   neighbourDistance: 30
   avoidanceDistance: 30
-  alignmentWeight: 7
-  cohesionWeight: 7
-  seperationWeight: 3
-  correctionWeight: 5
-  groundAvoidanceWeight: 25
+  _alignmentWeight: 5
+  _cohesionWeight: 5
+  _seperationWeight: 5
+  _correctionWeight: 5
+  _groundAvoidanceWeight: 15
   spawnRadius: 250
   maximumRadius: 500
   boidFrameSpeed: 5

@@ -20,13 +20,13 @@ public class FPSTextDisplay : MonoBehaviour
 
     private void Update()
     {
-        if (Time.unscaledDeltaTime >= refreshTimer)
-        {
-            fps = (int)(1f / Time.unscaledDeltaTime);
+        if (Time.time < refreshTimer)
+            return;
 
-            fpsText.text = $"FPS: {fps}";
+        fps = (int)(1f / Time.unscaledDeltaTime);
 
-            refreshTimer = Time.unscaledDeltaTime + refreshRate;
-        }
+        fpsText.text = $"FPS: {fps}";
+
+        refreshTimer = Time.time + refreshRate;
     }
 }

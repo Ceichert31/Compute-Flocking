@@ -30,6 +30,10 @@ public class BoidValueUpdater : MonoBehaviour
                 //update with value
                 instancedFlocking.AlignmentWeight = ctx.Value;
                 break;
+            case UIElements.TerrainSlider:
+                //update with value
+                instancedFlocking.GroundAvoidanceWeight = ctx.Value;
+                break;
         }
     }
 }

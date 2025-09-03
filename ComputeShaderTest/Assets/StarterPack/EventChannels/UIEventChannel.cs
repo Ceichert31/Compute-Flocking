@@ -23,4 +23,5 @@ public enum UIElements
     SeparationSlider,
     AlignmentSlider,
     CohesionSlider,
+    TerrainSlider,
 }

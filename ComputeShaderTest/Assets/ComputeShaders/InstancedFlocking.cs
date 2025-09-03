@@ -64,7 +64,7 @@ public class InstancedFlocking : MonoBehaviour
     public float AlignmentWeight
     {
         get => _alignmentWeight;
-        set => PropertyChanged(ref _alignmentWeight, value);
+        set => PropertyChanged(ref _alignmentWeight, value, nameof(_alignmentWeight));
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class InstancedFlocking : MonoBehaviour
     public float CohesionWeight
     {
         get => _cohesionWeight;
-        set => PropertyChanged(ref _cohesionWeight, value);
+        set => PropertyChanged(ref _cohesionWeight, value, nameof(_cohesionWeight));
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class InstancedFlocking : MonoBehaviour
     public float SeperationWeight
     {
         get => _seperationWeight;
-        set => PropertyChanged(ref _seperationWeight, value);
+        set => PropertyChanged(ref _seperationWeight, value, nameof(_seperationWeight));
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public class InstancedFlocking : MonoBehaviour
     public float CorrectionWeight
     {
         get => _correctionWeight;
-        set => PropertyChanged(ref _correctionWeight, value);
+        set => PropertyChanged(ref _correctionWeight, value, nameof(_correctionWeight));
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public class InstancedFlocking : MonoBehaviour
     public float GroundAvoidanceWeight
     {
         get => _groundAvoidanceWeight;
-        set => PropertyChanged(ref _groundAvoidanceWeight, value);
+        set => PropertyChanged(ref _groundAvoidanceWeight, value, nameof(_groundAvoidanceWeight));
     }
 
     /// <summary>
@@ -199,7 +199,7 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="property"></param>
-    private void PropertyChanged<T>(ref T property, object value)
+    private void PropertyChanged<T>(ref T property, object value, string variableName)
     {
         //Set property
         property = (T)value;
@@ -208,7 +208,7 @@ public class InstancedFlocking : MonoBehaviour
         switch (property)
         {
             case float:
-                shader.SetFloat(nameof(property), (float)(object)property);
+                shader.SetFloat(variableName, (float)(object)property);
                 break;
 
             case int:

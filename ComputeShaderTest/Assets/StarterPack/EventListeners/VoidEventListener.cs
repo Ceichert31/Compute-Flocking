@@ -1,1 +1,1 @@
-public class VoidEventListener : GenericEventListener<UIEventChannel, UIEvent> { }
+public class VoidEventListener : GenericEventListener<VoidEventChannel, VoidEvent> { }

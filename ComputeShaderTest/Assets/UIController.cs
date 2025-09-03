@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -5,27 +6,31 @@ using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
+    //Open and close UI event
+
+    //Dotween menu open
+
+    //Unlock cursor on other script
+
+    //Pause simulation?
+
     [SerializeField]
-    private UIEventChannel uiElementUpdatedEvent;
-
-    private UIEvent uiEvent;
+    private GameObject devMenu;
 
     [SerializeField]
-    private Slider separationSlider;
+    private float menuOpenTime = 0.3f;
 
-    UnityAction<float> separationAction;
-
-    private void Awake()
+    public void OpenMenu(BoolEvent ctx)
     {
-        separationSlider.onValueChanged.AddListener(separationAction);
-
-        separationAction += UpdateSliderInfo;
-    }
-
-    private void UpdateSliderInfo(float value)
-    {
-        //Send event to event bus with value and UI element
-        //Update boid manager's separation value
-        //Update UI
+        if (ctx.Value)
+        {
+            //Tween menu open
+            devMenu.transform.DOScaleX(1, menuOpenTime).SetEase(Ease.OutBack);
+        }
+        else
+        {
+            //Tween menu closed
+            devMenu.transform.DOScaleX(0, menuOpenTime).SetEase(Ease.InOutCubic);
+        }
     }
 }

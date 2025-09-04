@@ -146,7 +146,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         debugData.isAvoiding = 1;
     }
     
-    float3 centerOfMass = 0;
+    float3 centerOfMass = boid.position;
     
     //Check for nearby boids
     for (uint i = 0; i < (uint)_boidsCount; ++i)

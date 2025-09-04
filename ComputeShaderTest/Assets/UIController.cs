@@ -15,7 +15,7 @@ public class UIController : MonoBehaviour
     //Pause simulation?
 
     [SerializeField]
-    private GameObject devMenu;
+    private RectTransform devMenu;
 
     [SerializeField]
     private float menuOpenTime = 0.3f;
@@ -25,12 +25,12 @@ public class UIController : MonoBehaviour
         if (ctx.Value)
         {
             //Tween menu open
-            devMenu.transform.DOScaleX(1, menuOpenTime).SetEase(Ease.OutBack);
+            devMenu.DOAnchorPosY(400, menuOpenTime).SetEase(Ease.OutBack);
         }
         else
         {
             //Tween menu closed
-            devMenu.transform.DOScaleX(0, menuOpenTime).SetEase(Ease.InOutCubic);
+            devMenu.DOAnchorPosY(-400, menuOpenTime).SetEase(Ease.InOutCubic);
         }
     }
 }

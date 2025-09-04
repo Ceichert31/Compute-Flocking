@@ -24,4 +24,5 @@ public enum UIElements
     AlignmentSlider,
     CohesionSlider,
     TerrainSlider,
+    DebugCheckbox,
 }

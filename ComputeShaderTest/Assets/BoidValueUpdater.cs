@@ -34,6 +34,18 @@ public class BoidValueUpdater : MonoBehaviour
                 //update with value
                 instancedFlocking.GroundAvoidanceWeight = ctx.Value;
                 break;
+            case UIElements.DebugCheckbox:
+                if (Mathf.Approximately(ctx.Value, 1))
+                {
+                    instancedFlocking.isDebugEnabled = true;
+                    instancedFlocking.isTerrainDebugEnabled = true;
+                }
+                else
+                {
+                    instancedFlocking.isDebugEnabled = false;
+                    instancedFlocking.isTerrainDebugEnabled = false;    
+                }
+                break;
         }
     }
 }

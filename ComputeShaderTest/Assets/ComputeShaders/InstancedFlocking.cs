@@ -44,16 +44,35 @@ public class InstancedFlocking : MonoBehaviour
     }
 
     [Header("Boid General Settings")]
-    public int boidsCount;
+    public int BoidsCount
+    {
+        get => _boidsCount;
+        set => PropertyChanged(ref _boidsCount, value, nameof(_boidsCount));
+    }
+    [SerializeField]
+    private int _boidsCount = 3000;
 
     [Header("Boid Movement Values")]
     public float rotationSpeed = 1f;
-    public float boidSpeed = 1f;
+    public float BoidSpeed
+    {
+        get => _boidSpeed;
+        set => PropertyChanged(ref _boidSpeed, value, nameof(_boidSpeed));
+    }
+    [SerializeField]
+    private float _boidSpeed = 3f;
     public float boidSpeedVariation = 1f;
     public float boidMaxSeparationSpeed = 5f;
 
     [Header("Boid Avoidance Values")]
-    public float neighbourDistance = 1f;
+    public float NeighbourDistance
+    {
+        get => _neightbourDistance;
+        set => PropertyChanged(ref _neightbourDistance, value, nameof(_neightbourDistance));
+    }
+    [SerializeField]
+    private float _neightbourDistance = 1f;
+    
     public float avoidanceDistance = 3f;
 
     [Header("Boid Weights")]
@@ -226,7 +245,7 @@ public class InstancedFlocking : MonoBehaviour
         kernelHandle = shader.FindKernel("CSMain");
 
         shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
-        groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
+        groupSizeX = Mathf.CeilToInt(BoidsCount / (float)x);
         numberOfBoids = groupSizeX * (int)x;
 
         InitBoids();
@@ -266,7 +285,7 @@ public class InstancedFlocking : MonoBehaviour
             Quaternion rot = Quaternion.Slerp(transform.rotation, Random.rotation, 0.3f);
 
             //Random offset
-            float offset = Random.value * boidsCount;
+            float offset = Random.value * BoidsCount;
 
             //Add boid to array
             boidsArray[i] = new Boid(pos, rot.eulerAngles, offset);
@@ -309,8 +328,8 @@ public class InstancedFlocking : MonoBehaviour
         //Set boid properties
         shader.SetInt("_boidsCount", numberOfBoids);
         shader.SetFloat("_rotationSpeed", rotationSpeed);
-        shader.SetFloat("_boidSpeed", boidSpeed);
-        shader.SetFloat("_neighborDistance", neighbourDistance);
+        shader.SetFloat("_boidSpeed", BoidSpeed);
+        shader.SetFloat("_neighborDistance", NeighbourDistance);
         shader.SetFloat("_avoidanceDistance", avoidanceDistance);
         shader.SetFloat("_boidSpeedVariation", boidSpeedVariation);
         shader.SetVector("_flockPosition", target.transform.position);
@@ -450,7 +469,7 @@ public class InstancedFlocking : MonoBehaviour
         kernelHandle = shader.FindKernel("CSMain");
 
         shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
-        groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
+        groupSizeX = Mathf.CeilToInt(BoidsCount / (float)x);
         numberOfBoids = groupSizeX * (int)x;
 
         InitBoids();

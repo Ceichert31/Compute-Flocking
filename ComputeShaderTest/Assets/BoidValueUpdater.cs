@@ -47,13 +47,13 @@ public class BoidValueUpdater : MonoBehaviour
                 }
                 break;
             case UIElements.BoidSpeedSlider:
-                instancedFlocking.boidSpeed = ctx.Value;
+                instancedFlocking.BoidSpeed = ctx.Value;
                 break;
             case UIElements.BoidDistanceSlider:
-                instancedFlocking.neighbourDistance = ctx.Value;
+                instancedFlocking.NeighbourDistance = ctx.Value;
                 break;
             case UIElements.BoidCountSlider:
-                instancedFlocking.boidsCount = (int)ctx.Value;
+                instancedFlocking.BoidsCount = (int)ctx.Value;
                 instancedFlocking.ResetBoids();
                 break;
         }

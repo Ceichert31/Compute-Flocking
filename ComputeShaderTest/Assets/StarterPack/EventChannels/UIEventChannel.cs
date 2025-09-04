@@ -25,4 +25,7 @@ public enum UIElements
     CohesionSlider,
     TerrainSlider,
     DebugCheckbox,
+    BoidSpeedSlider,
+    BoidDistanceSlider,
+    BoidCountSlider,
 }

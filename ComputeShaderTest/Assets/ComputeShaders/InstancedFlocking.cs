@@ -445,6 +445,25 @@ public class InstancedFlocking : MonoBehaviour
         vertexAnimationBuffer?.Release();
     }
 
+    public void ResetBoids()
+    {
+        kernelHandle = shader.FindKernel("CSMain");
+
+        shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);
+        groupSizeX = Mathf.CeilToInt(boidsCount / (float)x);
+        numberOfBoids = groupSizeX * (int)x;
+
+        InitBoids();
+        GenerateSkinnedAnimationForGPUBuffer();
+        InitTerrain();
+        InitShader();
+
+        renderParams = new RenderParams(boidMaterial)
+        {
+            worldBounds = new Bounds(Vector3.zero, Vector3.one * 10000),
+        };
+    }
+
     [SerializeField]
     private float terrainSampleSphereRadius = 0.3f;
 

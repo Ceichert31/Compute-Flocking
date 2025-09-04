@@ -7,6 +7,8 @@ public class CheckmarkUpdateValue : MonoBehaviour
 
     [SerializeField]
     private UIEventChannel updateUIValuesEvent;
+   
+    [SerializeField]
     private UIEvent uiEvent;
 
     
@@ -17,7 +19,6 @@ public class CheckmarkUpdateValue : MonoBehaviour
         toggle.onValueChanged.AddListener(x =>
         {
             uiEvent.Value = toggle.isOn ? 1 : 0;
-            uiEvent.UIElement = UIElements.DebugCheckbox;
             updateUIValuesEvent.CallEvent(uiEvent);
         });
     }

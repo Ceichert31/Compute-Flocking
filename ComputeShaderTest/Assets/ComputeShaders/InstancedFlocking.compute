@@ -167,21 +167,18 @@ void CSMain (uint3 id : SV_DispatchThreadID)
             cohesion += _boidsBuffer[i].position;
             
             //If boid is close, increase separation vector 
-            separation += direction * (1.0 / distance - 1.0 / _neighborDistance);
-            //separation += normalize(direction) / distance - (1.0 / _neighborDistance);
+            //separation += direction * (1.0 / distance - 1.0 / _neighborDistance);
+            separation += normalize(direction) / distance;
             
             //Get the sum of each boids direction
             alignment += _boidsBuffer[i].velocity;
 
             centerOfMass += _boidsBuffer[i].position;
-
+            
             //Add one to count of nearby boids
             nearbyCount++;
         }
     }
-
-    //Calculate average value of alignment and cohesion
-    //float avg = 1.0 / nearbyCount;
 
     alignment /= nearbyCount;
     
@@ -189,15 +186,16 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     cohesion = (centerOfMass - boid.position) / _neighborDistance;
 
+
+    //Add ability to change max radius
+    //Test this solution to make sure it works
     if (!InsideBounds(boid.position))
     {
-        correction = _sphereCenter - boid.position;
+        boid.position = -(_sphereCenter - boid.position);
     }
+
     
-    normalize(alignment);
     normalize(cohesion);
-    //normalize(groundAvoidance);
-    //normalize(correction);
 
     //Final weighted movement force
     float3 finalForce = (

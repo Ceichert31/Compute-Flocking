@@ -3436,17 +3436,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb3cba714cc4d334b99aebfb28e224ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boidsCount: 3000
+  _boidsCount: 3000
   rotationSpeed: 0.01
-  boidSpeed: 11
+  _boidSpeed: 3
   boidSpeedVariation: 0.5
-  boidMaxSeparationSpeed: 50
-  neighbourDistance: 25
+  boidMaxSeparationSpeed: 100
+  _neightbourDistance: 30
   avoidanceDistance: 30
   _alignmentWeight: 5
   _cohesionWeight: 5
   _seperationWeight: 5
-  _correctionWeight: 0
+  _correctionWeight: 5
   _groundAvoidanceWeight: 5
   spawnRadius: 250
   maximumRadius: 500

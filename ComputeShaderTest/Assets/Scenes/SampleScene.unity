@@ -3436,19 +3436,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb3cba714cc4d334b99aebfb28e224ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _boidsCount: 1
-  rotationSpeed: 0.3
-  _boidSpeed: 100
+  _boidsCount: 3000
+  rotationSpeed: 0.01
+  _boidSpeed: 25
   boidSpeedVariation: 0.5
-  boidMaxSeparationSpeed: 100
+  boidMaxSeparationSpeed: 10
   _neightbourDistance: 30
   avoidanceDistance: 30
-  _alignmentWeight: 5
-  _cohesionWeight: 5
-  _seperationWeight: 5
-  _correctionWeight: 5
-  _groundAvoidanceWeight: 5
-  spawnRadius: 250
+  _alignmentWeight: 0
+  _cohesionWeight: 0
+  _seperationWeight: 0
+  _correctionWeight: 0
+  _groundAvoidanceWeight: 0
+  spawnRadius: 176.3
   maximumRadius: 500
   boidFrameSpeed: 5
   frameInterpolation: 1

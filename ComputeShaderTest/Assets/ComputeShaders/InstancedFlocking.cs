@@ -67,11 +67,11 @@ public class InstancedFlocking : MonoBehaviour
     [Header("Boid Avoidance Values")]
     public float NeighbourDistance
     {
-        get => _neightbourDistance;
-        set => PropertyChanged(ref _neightbourDistance, value, nameof(_neightbourDistance));
+        get => _neighborDistance;
+        set => PropertyChanged(ref _neighborDistance, value, nameof(_neighborDistance));
     }
     [SerializeField]
-    private float _neightbourDistance = 1f;
+    private float _neighborDistance = 1f;
     
     public float avoidanceDistance = 3f;
 

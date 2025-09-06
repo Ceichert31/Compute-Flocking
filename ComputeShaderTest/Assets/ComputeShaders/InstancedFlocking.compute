@@ -116,7 +116,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float3 separation = 0;
     float3 alignment = 0;
     float3 cohesion = 0;
-    float3 correction = 0;
     float3 groundAvoidance = 0;
 
     //Calculate noise to be used for speed variation
@@ -126,7 +125,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float velocity = _boidSpeed * (1.0 + noise * _boidSpeedVariation);
 
     //Default 1 because of self
-    uint nearbyCount = 1;
+    uint nearbyCount = 0;
     
       //Sample future positions heightmap
     float sampledHeight = GetTerrainHeight(boid.position);
@@ -146,14 +145,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         debugData.isAvoiding = 1;
     }
     
-    float3 centerOfMass = boid.position;
+    float3 centerOfMass = _sphereCenter;
     
     //Check for nearby boids
     for (uint i = 0; i < (uint)_boidsCount; ++i)
     {
-        //Pass if boid is self
-        if (i == id.x) continue;
-
         //Calculate the direction from our boid to other boid
         float3 direction = _boidsBuffer[i].position - boid.position;
 
@@ -161,18 +157,16 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         float distance = max(length(direction), 0.000001);
         
         //If within neighboring distance
-        if (distance < _neighborDistance)
+        if (distance <= _neighborDistance)
         {
-            //Get the sum of each boids position
-            cohesion += _boidsBuffer[i].position;
-            
             //If boid is close, increase separation vector 
             //separation += direction * (1.0 / distance - 1.0 / _neighborDistance);
             separation += normalize(direction) / distance;
             
-            //Get the sum of each boids direction
+            //Get the sum of each boids velocity
             alignment += _boidsBuffer[i].velocity;
 
+            //Get the sum of each boids position
             centerOfMass += _boidsBuffer[i].position;
             
             //Add one to count of nearby boids
@@ -180,20 +174,25 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         }
     }
 
-    alignment /= nearbyCount;
-    
-    separation = clamp(separation, 0, _maxSeparationSpeed);
-    
-    cohesion = (centerOfMass - boid.position) / _neighborDistance;
-    
-    normalize(cohesion);
+    if (nearbyCount > 0)
+    {
+        alignment /= nearbyCount;
 
+        centerOfMass /= nearbyCount;
+        cohesion = (centerOfMass - boid.position);
+        cohesion = normalize(cohesion);
+
+        //Apply weights
+        separation = (separation * _separationWeight);
+        alignment = (alignment * _alignmentWeight);
+        cohesion = (cohesion * _cohesionWeight);
+        groundAvoidance = (groundAvoidance * _avoidanceWeight);
+        
+        separation = clamp(separation, 0, _maxSeparationSpeed);
+    }
+    
     //Final weighted movement force
-    /*float3 finalForce = (
-        (alignment * _alignmentWeight) + (separation * _separationWeight) + (cohesion * _cohesionWeight)
-        + (groundAvoidance * _avoidanceWeight) + (correction * _correctionWeight)
-    );*/
-    float3 finalForce = float3(0, 0, 0);
+    float3 finalForce = cohesion + alignment + separation + groundAvoidance;
 
     if (!InsideBounds(boid.position))
     {
@@ -201,17 +200,18 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         float3 returnVector = normalize(-(boid.position - _sphereCenter));
 
         //Clamp boids position to a point on the sphere
-        boid.position = returnVector * (_maximumRadius - 5.0) + _sphereCenter;
+        boid.position = returnVector * (_maximumRadius - 5.0);
+        //finalForce = float3(0, 0, 0);
     }
 
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), finalForce, _rotationSpeed);
 
     //Set position
-    boid.position += (boid.velocity * _boidSpeed * _deltaTime);
+    boid.position += (boid.velocity * velocity * _deltaTime);
     
     //Update animation
-    boid.frame = boid.frame + _boidSpeed * _deltaTime * _boidFrameSpeed;
+    boid.frame = boid.frame + velocity * _deltaTime * _boidFrameSpeed;
     
     boid.frame %= _numberOfFrames;
     debugData.velocity = boid.velocity;

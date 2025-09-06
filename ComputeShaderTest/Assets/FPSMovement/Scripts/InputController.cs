@@ -137,9 +137,10 @@ public class InputController : MonoBehaviour
 
         cam = GetComponentInChildren<Camera>();
 
-        if (transform.TryGetComponent(out Freecam freeCamera))
+        //Initialize free camera if attached to object
+        if (TryGetComponent(out Freecam freeCamera))
         {
-            //freeCamera.Initialize(ref playerMovement);
+            freeCamera.Initialize(playerControls);
         }
 
         //To confirm the ray distance is longer than the height offset
@@ -224,6 +225,8 @@ public class InputController : MonoBehaviour
 
     private void Look()
     {
+        if (isFreecamEnabled) return;
+        
         //Check if player is looking too far up or down
         applyMovementEffects = lookRotation > 80 || lookRotation < -80;
 
@@ -249,19 +252,21 @@ public class InputController : MonoBehaviour
 
     private void EnableFreecam(InputAction.CallbackContext ctx)
     {
+        if (!transform.TryGetComponent(out Freecam freeCameraMode))
+            return;
+        
         isFreecamEnabled = !isFreecamEnabled;
 
         if (isFreecamEnabled)
         {
-            if (!transform.TryGetComponent(out Freecam freeCameraMode))
-                return;
-
             freeCameraMode.EnableFreecam(isFreecamEnabled);
-
+            rb.isKinematic = true;
             playerMovement.Disable();
         }
         else
         {
+            freeCameraMode.EnableFreecam(isFreecamEnabled);
+            rb.isKinematic = false;
             playerMovement.Enable();
         }
     }
@@ -288,8 +293,9 @@ public class InputController : MonoBehaviour
     {
         playerMovement.Enable();
         playerUIActions.Enable();
+        playerControls.Freecam.Enable();
 
-        playerMovement.Freecam.performed += EnableFreecam;
+        playerControls.Freecam.Freecam.performed += EnableFreecam;
         playerUIActions.DevMenu.performed += DevMenu;
     }
 
@@ -297,8 +303,9 @@ public class InputController : MonoBehaviour
     {
         playerMovement.Disable();
         playerUIActions.Disable();
+        playerControls.Freecam.Disable();
 
-        playerMovement.Freecam.performed -= EnableFreecam;
+        playerControls.Freecam.Freecam.performed -= EnableFreecam;
         playerUIActions.DevMenu.performed -= DevMenu;
     }
 }

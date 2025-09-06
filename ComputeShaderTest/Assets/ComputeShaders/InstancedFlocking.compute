@@ -66,7 +66,7 @@ bool InsideBounds(float3 currentPos)
     float yValue = pow(currentPos.y - _sphereCenter.y, 2);
     float zValue = pow(currentPos.z - _sphereCenter.z, 2);
 
-    if (xValue + yValue + zValue < pow(_maximumRadius, 2))
+    if (xValue + yValue + zValue <= pow(_maximumRadius, 2))
     {
         return true;
     }
@@ -185,32 +185,33 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     separation = clamp(separation, 0, _maxSeparationSpeed);
     
     cohesion = (centerOfMass - boid.position) / _neighborDistance;
-
-
-    //Add ability to change max radius
-    //Test this solution to make sure it works
-    if (!InsideBounds(boid.position))
-    {
-        boid.position = -(_sphereCenter - boid.position);
-    }
-
     
     normalize(cohesion);
 
     //Final weighted movement force
-    float3 finalForce = (
+    /*float3 finalForce = (
         (alignment * _alignmentWeight) + (separation * _separationWeight) + (cohesion * _cohesionWeight)
         + (groundAvoidance * _avoidanceWeight) + (correction * _correctionWeight)
-    );
+    );*/
+    float3 finalForce = float3(0, 0, 0);
+
+    if (!InsideBounds(boid.position))
+    {
+        //Get direction from center to boid
+        float3 returnVector = normalize(-(boid.position - _sphereCenter));
+
+        //Clamp boids position to a point on the sphere
+        boid.position = returnVector * (_maximumRadius - 5.0) + _sphereCenter;
+    }
 
     //Lerp towards target direction
     boid.velocity = lerp(normalize(boid.velocity), finalForce, _rotationSpeed);
 
     //Set position
-    boid.position += (boid.velocity * velocity * _deltaTime);
-
+    boid.position += (boid.velocity * _boidSpeed * _deltaTime);
+    
     //Update animation
-    boid.frame = boid.frame + velocity * _deltaTime * _boidFrameSpeed;
+    boid.frame = boid.frame + _boidSpeed * _deltaTime * _boidFrameSpeed;
     
     boid.frame %= _numberOfFrames;
     debugData.velocity = boid.velocity;

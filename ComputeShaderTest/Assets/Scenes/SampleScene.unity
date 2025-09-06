@@ -3436,9 +3436,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb3cba714cc4d334b99aebfb28e224ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _boidsCount: 3000
-  rotationSpeed: 0.01
-  _boidSpeed: 3
+  _boidsCount: 1
+  rotationSpeed: 0.3
+  _boidSpeed: 100
   boidSpeedVariation: 0.5
   boidMaxSeparationSpeed: 100
   _neightbourDistance: 30
@@ -3462,7 +3462,7 @@ MonoBehaviour:
   isDebugEnabled: 0
   isTerrainDebugEnabled: 0
   debugRayDist: 3
-  terrainSampleSphereRadius: 0.3
+  terrainSampleSphereRadius: 0.03
 --- !u!114 &1775029688
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3670,7 +3670,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3248259657647873371, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
       propertyPath: sprintSpeed
-      value: 100
+      value: 140
       objectReference: {fileID: 0}
     - target: {fileID: 3248259657647873371, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
       propertyPath: verticalSpeed

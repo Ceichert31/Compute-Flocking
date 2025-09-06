@@ -509,17 +509,6 @@ public class InstancedFlocking : MonoBehaviour
             if (!isTerrainDebugEnabled)
                 continue;
 
-            //Draw line from boid to sampled ground
-            /*if (debugArray[i].isAvoiding == 1)
-                Debug.DrawLine(
-                    debugArray[i].position,
-                    new Vector3(
-                        debugArray[i].position.x,
-                        debugArray[i].sampledTerrainHeight,
-                        debugArray[i].position.z
-                    ),
-                    Color.yellow
-                );*/
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(
                 new Vector3(

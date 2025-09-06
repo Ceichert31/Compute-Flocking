@@ -21,7 +21,7 @@ public class Freecam : MonoBehaviour
     private bool isFreeCameraEnabled;
 
     private Camera cam;
-
+    
     private PlayerControls playerControls;
     private PlayerControls.FreecamActions freecamActions;
     
@@ -33,11 +33,24 @@ public class Freecam : MonoBehaviour
     private void Awake()
     {
         cam = GetComponentInChildren<Camera>();
+       
         playerControls = new PlayerControls();
         freecamActions = playerControls.Freecam;
         currentSpeed = flySpeed;
     }
 
+    public void PauseMovement(bool pause)
+    {
+        if (pause)
+        {
+            freecamActions.Disable();
+        }
+        else
+        {
+            freecamActions.Enable();
+        }
+    }
+    
     private void OnEnable()
     {
         freecamActions.Enable();

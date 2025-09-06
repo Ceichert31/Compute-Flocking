@@ -3661,12 +3661,20 @@ PrefabInstance:
       value: FPSMovement
       objectReference: {fileID: 0}
     - target: {fileID: 3248259657647873371, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
+      propertyPath: flySpeed
+      value: 55
+      objectReference: {fileID: 0}
+    - target: {fileID: 3248259657647873371, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3248259657647873371, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
+      propertyPath: sprintSpeed
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3248259657647873371, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
       propertyPath: verticalSpeed
-      value: 7
+      value: 65
       objectReference: {fileID: 0}
     - target: {fileID: 4184258596113817863, guid: b59b9ea62f378d04da1442badcd2d715, type: 3}
       propertyPath: m_LocalPosition.x

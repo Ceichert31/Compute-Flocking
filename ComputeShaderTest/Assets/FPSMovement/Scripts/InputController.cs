@@ -131,6 +131,8 @@ public class InputController : MonoBehaviour
         get { return moveInput; }
     }
 
+    private bool hasFreecamComponent;
+    private Freecam freeCam;
     private void Awake()
     {
         //Initialize Controls
@@ -141,6 +143,11 @@ public class InputController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         cam = GetComponentInChildren<Camera>();
+
+        if (TryGetComponent(out freeCam))
+        {
+            hasFreecamComponent = true;
+        }
 
         //To confirm the ray distance is longer than the height offset
         offsetRayDistance += heightOffset;
@@ -255,22 +262,21 @@ public class InputController : MonoBehaviour
     /// <param name="ctx"></param>
     private void EnableFreecam(InputAction.CallbackContext ctx)
     {
-        if (!transform.TryGetComponent(out Freecam freeCameraMode))
-            return;
+        if (!hasFreecamComponent) return;
         
         isFreecamEnabled = !isFreecamEnabled;
 
         if (isFreecamEnabled)
         {
             previousPosition = transform.position;
-            freeCameraMode.EnableFreecam(isFreecamEnabled);
+            freeCam.EnableFreecam(isFreecamEnabled);
             rb.isKinematic = true;
             playerMovement.Disable();
         }
         else
         {
             transform.position = previousPosition;
-            freeCameraMode.EnableFreecam(isFreecamEnabled);
+            freeCam.EnableFreecam(isFreecamEnabled);
             rb.isKinematic = false;
             playerMovement.Enable();
         }
@@ -283,10 +289,16 @@ public class InputController : MonoBehaviour
         if (isUIOpen)
         {
             playerMovement.Disable();
+            
+            if (isFreecamEnabled)
+                freeCam.PauseMovement(true);
         }
         else
         {
-            playerMovement.Enable();
+            if (!isFreecamEnabled)
+                playerMovement.Enable();
+            else
+                freeCam.PauseMovement(false);
         }
 
         boolEvent.Value = isUIOpen;

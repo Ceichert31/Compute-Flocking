@@ -855,6 +855,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""Look"",
+                    ""type"": ""Value"",
+                    ""id"": ""baec80f9-09f2-4c92-bbdf-a435aea22af6"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
                     ""name"": ""Down"",
                     ""type"": ""Button"",
                     ""id"": ""83207617-5177-4668-967f-d0703463541e"",
@@ -985,7 +994,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""387741ce-7978-45ad-a90a-8b5cc5172048"",
-                    ""path"": ""<Keyboard>/q"",
+                    ""path"": ""<Keyboard>/e"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -995,8 +1004,19 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""19a4dc78-9937-4ea0-b2e0-167860a2d6df"",
+                    ""path"": ""<Pointer>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Look"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""e9407504-7e27-44ed-9f58-2885aa338001"",
-                    ""path"": ""<Keyboard>/e"",
+                    ""path"": ""<Keyboard>/q"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1055,6 +1075,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Freecam = asset.FindActionMap("Freecam", throwIfNotFound: true);
         m_Freecam_Move = m_Freecam.FindAction("Move", throwIfNotFound: true);
         m_Freecam_Up = m_Freecam.FindAction("Up", throwIfNotFound: true);
+        m_Freecam_Look = m_Freecam.FindAction("Look", throwIfNotFound: true);
         m_Freecam_Down = m_Freecam.FindAction("Down", throwIfNotFound: true);
         m_Freecam_Freecam = m_Freecam.FindAction("Freecam", throwIfNotFound: true);
         m_Freecam_Dash = m_Freecam.FindAction("Dash", throwIfNotFound: true);
@@ -1332,6 +1353,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private List<IFreecamActions> m_FreecamActionsCallbackInterfaces = new List<IFreecamActions>();
     private readonly InputAction m_Freecam_Move;
     private readonly InputAction m_Freecam_Up;
+    private readonly InputAction m_Freecam_Look;
     private readonly InputAction m_Freecam_Down;
     private readonly InputAction m_Freecam_Freecam;
     private readonly InputAction m_Freecam_Dash;
@@ -1341,6 +1363,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public FreecamActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Move => m_Wrapper.m_Freecam_Move;
         public InputAction @Up => m_Wrapper.m_Freecam_Up;
+        public InputAction @Look => m_Wrapper.m_Freecam_Look;
         public InputAction @Down => m_Wrapper.m_Freecam_Down;
         public InputAction @Freecam => m_Wrapper.m_Freecam_Freecam;
         public InputAction @Dash => m_Wrapper.m_Freecam_Dash;
@@ -1359,6 +1382,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Up.started += instance.OnUp;
             @Up.performed += instance.OnUp;
             @Up.canceled += instance.OnUp;
+            @Look.started += instance.OnLook;
+            @Look.performed += instance.OnLook;
+            @Look.canceled += instance.OnLook;
             @Down.started += instance.OnDown;
             @Down.performed += instance.OnDown;
             @Down.canceled += instance.OnDown;
@@ -1378,6 +1404,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Up.started -= instance.OnUp;
             @Up.performed -= instance.OnUp;
             @Up.canceled -= instance.OnUp;
+            @Look.started -= instance.OnLook;
+            @Look.performed -= instance.OnLook;
+            @Look.canceled -= instance.OnLook;
             @Down.started -= instance.OnDown;
             @Down.performed -= instance.OnDown;
             @Down.canceled -= instance.OnDown;
@@ -1430,6 +1459,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     {
         void OnMove(InputAction.CallbackContext context);
         void OnUp(InputAction.CallbackContext context);
+        void OnLook(InputAction.CallbackContext context);
         void OnDown(InputAction.CallbackContext context);
         void OnFreecam(InputAction.CallbackContext context);
         void OnDash(InputAction.CallbackContext context);

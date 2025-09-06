@@ -833,6 +833,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Look",
+                    "type": "Value",
+                    "id": "baec80f9-09f2-4c92-bbdf-a435aea22af6",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Down",
                     "type": "Button",
                     "id": "83207617-5177-4668-967f-d0703463541e",
@@ -963,7 +972,7 @@
                 {
                     "name": "",
                     "id": "387741ce-7978-45ad-a90a-8b5cc5172048",
-                    "path": "<Keyboard>/q",
+                    "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -973,8 +982,19 @@
                 },
                 {
                     "name": "",
+                    "id": "19a4dc78-9937-4ea0-b2e0-167860a2d6df",
+                    "path": "<Pointer>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "e9407504-7e27-44ed-9f58-2885aa338001",
-                    "path": "<Keyboard>/e",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 [RequireComponent(typeof(InputController))]
@@ -23,8 +24,7 @@ public class Freecam : MonoBehaviour
 
     private PlayerControls playerControls;
     private PlayerControls.FreecamActions freecamActions;
-
-
+    
     private Vector2 moveInput;
     private Vector2 lookInput;
     private float lookRotation;
@@ -35,11 +35,14 @@ public class Freecam : MonoBehaviour
         cam = GetComponentInChildren<Camera>();
         playerControls = new PlayerControls();
         freecamActions = playerControls.Freecam;
+        currentSpeed = flySpeed;
     }
 
     private void OnEnable()
     {
         freecamActions.Enable();
+        freecamActions.Move.performed += OnMove;
+        freecamActions.Move.canceled += OnMove;
         freecamActions.Dash.performed += OnDash;
         freecamActions.Dash.canceled += OnDash;
         freecamActions.Up.performed += MoveUp;
@@ -50,6 +53,8 @@ public class Freecam : MonoBehaviour
     private void OnDisable()
     {
         freecamActions.Disable();
+        freecamActions.Move.performed -= OnMove;
+        freecamActions.Move.canceled -= OnMove;
         freecamActions.Dash.performed -= OnDash;
         freecamActions.Dash.canceled -= OnDash;
         freecamActions.Up.performed -= MoveUp;
@@ -73,6 +78,10 @@ public class Freecam : MonoBehaviour
     {
         isFreeCameraEnabled = isEnabled;
     }
+    private void OnMove(InputAction.CallbackContext context)
+    {
+        moveInput = context.performed ? context.ReadValue<Vector2>() : Vector2.zero;
+    }
     private void MoveUp(InputAction.CallbackContext context)
     {
         verticalMovement = context.performed ? Vector3.up : Vector3.zero;
@@ -89,8 +98,6 @@ public class Freecam : MonoBehaviour
 
     private void Move()
     {
-        moveInput = freecamActions.Move?.ReadValue<Vector2>() ?? Vector2.zero;
-        
         Vector3 forwardMovement = Vector3.Normalize(transform.forward) * (moveInput.y * currentSpeed * Time.deltaTime);
         Vector3 rightMovement = Vector3.Normalize(transform.right) * (moveInput.x * currentSpeed * Time.deltaTime);
         
@@ -99,7 +106,7 @@ public class Freecam : MonoBehaviour
     private void Look()
     {
         //Read mouse input
-        Vector2 lookForce = playerControls.Movement.Look?.ReadValue<Vector2>() ?? Vector2.zero;
+        Vector2 lookForce = freecamActions.Look?.ReadValue<Vector2>() ?? Vector2.zero;
 
         //Turn the player with the X-input
         gameObject.transform.Rotate(lookForce.x * sensitivity * Vector3.up / 100);

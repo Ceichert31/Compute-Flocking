@@ -9,41 +9,54 @@ public class Freecam : MonoBehaviour
     private float flySpeed = 10f;
     [SerializeField]
     private float sprintSpeed = 20f;
-    
+    [SerializeField]
+    private float verticalSpeed = 5f;
+
     [SerializeField]
     private float sensitivity = 5f;
-    
+
     private float currentSpeed;
 
     private bool isFreeCameraEnabled;
 
     private Camera cam;
-    
-    private PlayerControls playerControls;
 
+    private PlayerControls playerControls;
+    private PlayerControls.FreecamActions freecamActions;
+
+
+    private Vector2 moveInput;
+    private Vector2 lookInput;
     private float lookRotation;
-    
+    private Vector3 verticalMovement;
 
     private void Awake()
     {
         cam = GetComponentInChildren<Camera>();
         playerControls = new PlayerControls();
+        freecamActions = playerControls.Freecam;
     }
 
     private void OnEnable()
     {
-        playerControls.Enable();
+        freecamActions.Enable();
+        freecamActions.Dash.performed += OnDash;
+        freecamActions.Dash.canceled += OnDash;
+        freecamActions.Up.performed += MoveUp;
+        freecamActions.Up.canceled += MoveUp;
+        freecamActions.Down.performed += MoveDown;
+        freecamActions.Down.canceled += MoveDown;
     }
     private void OnDisable()
     {
-        playerControls.Disable();
+        freecamActions.Disable();
+        freecamActions.Dash.performed -= OnDash;
+        freecamActions.Dash.canceled -= OnDash;
+        freecamActions.Up.performed -= MoveUp;
+        freecamActions.Up.canceled -= MoveUp;
+        freecamActions.Down.performed -= MoveDown;
+        freecamActions.Down.canceled -= MoveDown;
     }
-
-    public void Initialize(PlayerControls playerControls)
-    {
-        //this.playerControls = playerControls;
-    }
-    
     private void Update()
     {
         if (!isFreeCameraEnabled) return;
@@ -60,12 +73,28 @@ public class Freecam : MonoBehaviour
     {
         isFreeCameraEnabled = isEnabled;
     }
+    private void MoveUp(InputAction.CallbackContext context)
+    {
+        verticalMovement = context.performed ? Vector3.up : Vector3.zero;
+    }
+    private void MoveDown(InputAction.CallbackContext context)
+    {
+        verticalMovement = context.performed ? Vector3.down : Vector3.zero;
+    }
+
+    private void OnDash(InputAction.CallbackContext context)
+    {
+        currentSpeed = context.performed ? sprintSpeed : flySpeed;
+    }
 
     private void Move()
     {
-        Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
-        currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : flySpeed;
-        transform.Translate(input * (currentSpeed * Time.deltaTime));
+        moveInput = freecamActions.Move?.ReadValue<Vector2>() ?? Vector2.zero;
+        
+        Vector3 forwardMovement = Vector3.Normalize(transform.forward) * (moveInput.y * currentSpeed * Time.deltaTime);
+        Vector3 rightMovement = Vector3.Normalize(transform.right) * (moveInput.x * currentSpeed * Time.deltaTime);
+        
+        transform.position += forwardMovement + rightMovement + (verticalMovement * (verticalSpeed * Time.deltaTime));
     }
     private void Look()
     {

@@ -58,7 +58,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""name"": ""Dash"",
                     ""type"": ""Button"",
                     ""id"": ""3df67290-44de-4e69-897d-922e389c3734"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -208,30 +208,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""f0fff639-a210-4800-b5a4-a16915a2735b"",
-                    ""path"": ""<Gamepad>/rightStick"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Look"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""d3860860-4d69-4ad1-8520-ad6328c2b4da"",
                     ""path"": ""<Pointer>/delta"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Look"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""140b6436-5fdf-4078-80f4-bb60bae61281"",
-                    ""path"": ""<Joystick>/{Hatswitch}"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -893,20 +871,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Dash"",
+                    ""type"": ""Button"",
+                    ""id"": ""44f292fb-ecba-4fdb-8fd6-f73a35c4c4b7"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
-                {
-                    ""name"": """",
-                    ""id"": ""09531ebb-86ce-4436-aabb-348683e98d7f"",
-                    ""path"": ""<Gamepad>/leftStick"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Move"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
                 {
                     ""name"": ""WASD"",
                     ""id"": ""fdbc401d-e4a4-4730-afb6-415c737f4625"",
@@ -1008,28 +984,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""e3dec86c-d22d-4f35-a4bb-48d23d3247fe"",
-                    ""path"": ""<XRController>/{Primary2DAxis}"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Move"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""2cfb587d-bf2e-4e02-a930-77e4e6202ff0"",
-                    ""path"": ""<Joystick>/stick"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Move"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""387741ce-7978-45ad-a90a-8b5cc5172048"",
                     ""path"": ""<Keyboard>/q"",
                     ""interactions"": """",
@@ -1058,6 +1012,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Freecam"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4f4434ff-ab15-4e74-8f4c-6df365b33cc6"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Dash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1092,6 +1057,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Freecam_Up = m_Freecam.FindAction("Up", throwIfNotFound: true);
         m_Freecam_Down = m_Freecam.FindAction("Down", throwIfNotFound: true);
         m_Freecam_Freecam = m_Freecam.FindAction("Freecam", throwIfNotFound: true);
+        m_Freecam_Dash = m_Freecam.FindAction("Dash", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -1368,6 +1334,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Freecam_Up;
     private readonly InputAction m_Freecam_Down;
     private readonly InputAction m_Freecam_Freecam;
+    private readonly InputAction m_Freecam_Dash;
     public struct FreecamActions
     {
         private @PlayerControls m_Wrapper;
@@ -1376,6 +1343,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Up => m_Wrapper.m_Freecam_Up;
         public InputAction @Down => m_Wrapper.m_Freecam_Down;
         public InputAction @Freecam => m_Wrapper.m_Freecam_Freecam;
+        public InputAction @Dash => m_Wrapper.m_Freecam_Dash;
         public InputActionMap Get() { return m_Wrapper.m_Freecam; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1397,6 +1365,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Freecam.started += instance.OnFreecam;
             @Freecam.performed += instance.OnFreecam;
             @Freecam.canceled += instance.OnFreecam;
+            @Dash.started += instance.OnDash;
+            @Dash.performed += instance.OnDash;
+            @Dash.canceled += instance.OnDash;
         }
 
         private void UnregisterCallbacks(IFreecamActions instance)
@@ -1413,6 +1384,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Freecam.started -= instance.OnFreecam;
             @Freecam.performed -= instance.OnFreecam;
             @Freecam.canceled -= instance.OnFreecam;
+            @Dash.started -= instance.OnDash;
+            @Dash.performed -= instance.OnDash;
+            @Dash.canceled -= instance.OnDash;
         }
 
         public void RemoveCallbacks(IFreecamActions instance)
@@ -1458,5 +1432,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnUp(InputAction.CallbackContext context);
         void OnDown(InputAction.CallbackContext context);
         void OnFreecam(InputAction.CallbackContext context);
+        void OnDash(InputAction.CallbackContext context);
     }
 }

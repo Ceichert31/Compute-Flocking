@@ -101,6 +101,11 @@ public class InputController : MonoBehaviour
     //Use Q + E for up and down
     //Slow players velocity when key is released
 
+    /// <summary>
+    /// Position before freecam
+    /// </summary>
+    private Vector3 previousPosition;
+
     //Input controller
     //Try get freecam script on button press
 
@@ -136,12 +141,6 @@ public class InputController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         cam = GetComponentInChildren<Camera>();
-
-        //Initialize free camera if attached to object
-        if (TryGetComponent(out Freecam freeCamera))
-        {
-            freeCamera.Initialize(playerControls);
-        }
 
         //To confirm the ray distance is longer than the height offset
         offsetRayDistance += heightOffset;
@@ -250,6 +249,10 @@ public class InputController : MonoBehaviour
         );
     }
 
+    /// <summary>
+    /// Enables/Disables freecam and resets the players position
+    /// </summary>
+    /// <param name="ctx"></param>
     private void EnableFreecam(InputAction.CallbackContext ctx)
     {
         if (!transform.TryGetComponent(out Freecam freeCameraMode))
@@ -259,12 +262,14 @@ public class InputController : MonoBehaviour
 
         if (isFreecamEnabled)
         {
+            previousPosition = transform.position;
             freeCameraMode.EnableFreecam(isFreecamEnabled);
             rb.isKinematic = true;
             playerMovement.Disable();
         }
         else
         {
+            transform.position = previousPosition;
             freeCameraMode.EnableFreecam(isFreecamEnabled);
             rb.isKinematic = false;
             playerMovement.Enable();

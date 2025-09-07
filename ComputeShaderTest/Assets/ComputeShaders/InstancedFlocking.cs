@@ -115,18 +115,18 @@ public class InstancedFlocking : MonoBehaviour
     /// The force at which boids move away from each
     /// other after coming in close contact
     /// </summary>
-    public float SeperationWeight
+    public float SeparationWeight
     {
-        get => _seperationWeight;
-        set => PropertyChanged(ref _seperationWeight, value, nameof(_seperationWeight));
+        get => _separationWeight;
+        set => PropertyChanged(ref _separationWeight, value, nameof(_separationWeight));
     }
 
     /// <summary>
-    /// <inheritdoc cref="SeperationWeight"/>
+    /// <inheritdoc cref="SeparationWeight"/>
     /// </summary>
     [Range(0, 1000f)]
     [SerializeField]
-    private float _seperationWeight;
+    private float _separationWeight;
 
     /// <summary>
     /// The force at which a boid returns towards
@@ -151,8 +151,8 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     public float GroundAvoidanceWeight
     {
-        get => _groundAvoidanceWeight;
-        set => PropertyChanged(ref _groundAvoidanceWeight, value, nameof(_groundAvoidanceWeight));
+        get => _avoidanceWeight;
+        set => PropertyChanged(ref _avoidanceWeight, value, nameof(_avoidanceWeight));
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     [Range(0, 1000f)]
     [SerializeField]
-    private float _groundAvoidanceWeight;
+    private float _avoidanceWeight;
 
     [Header("Boundry Values")]
     public float spawnRadius;
@@ -340,7 +340,7 @@ public class InstancedFlocking : MonoBehaviour
         //Set weight properties
         shader.SetFloat("_alignmentWeight", AlignmentWeight);
         shader.SetFloat("_cohesionWeight", CohesionWeight);
-        shader.SetFloat("_seperationWeight", SeperationWeight);
+        shader.SetFloat("_seperationWeight", SeparationWeight);
         shader.SetFloat("_avoidanceWeight", GroundAvoidanceWeight);
         shader.SetFloat("_correctionWeight", CorrectionWeight);
 
@@ -393,14 +393,21 @@ public class InstancedFlocking : MonoBehaviour
 
     private void GenerateSkinnedAnimationForGPUBuffer()
     {
+        boidObject.SetActive(true);
+        
         //Get skinned mesh renderer from prefab
-        boidSMR = boidObject.GetComponentInChildren<SkinnedMeshRenderer>();
+        if (boidSMR == null)
+        {
+            boidSMR = boidObject.GetComponentInChildren<SkinnedMeshRenderer>();
+            //Get starting mesh
+            boidMesh = boidSMR.sharedMesh;
+        }
 
-        //Get starting mesh
-        boidMesh = boidSMR.sharedMesh;
-
-        //Get animator from prefab
-        animator = boidObject.GetComponent<Animator>();
+        if (animator == null)
+        {
+            //Get animator from prefab
+            animator = boidObject.GetComponent<Animator>();
+        }
 
         //Set animation we want to use to first layer in animator
         int iLayer = 0;
@@ -468,6 +475,12 @@ public class InstancedFlocking : MonoBehaviour
 
     public void ResetBoids()
     {
+        //Clean buffers on destroy
+        boidsBuffer?.Release();
+        argsBuffer?.Release();
+        debugBuffer?.Release();
+        vertexAnimationBuffer?.Release();
+        
         kernelHandle = shader.FindKernel("CSMain");
 
         shader.GetKernelThreadGroupSizes(kernelHandle, out uint x, out _, out _);

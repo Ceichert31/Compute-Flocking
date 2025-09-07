@@ -201,11 +201,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     if (!InsideBounds(boid.position))
     {
-        float3 outwardDirection = normalize(boid.position - _sphereCenter);
+        float3 outwardDirection = -normalize(boid.position - _sphereCenter);
 
-        boid.position = _sphereCenter + outwardDirection * (_maximumRadius - 5);
+        boid.position = _sphereCenter + outwardDirection * (_maximumRadius - 15);
 
-        boid.velocity = reflect(boid.velocity, -outwardDirection);
+        boid.velocity = reflect(boid.velocity, outwardDirection);
     }
 
     //Lerp towards target direction

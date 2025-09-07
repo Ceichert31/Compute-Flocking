@@ -20,7 +20,7 @@ public class BoidValueUpdater : MonoBehaviour
         {
             case UIElements.SeparationSlider:
                 //update with value
-                instancedFlocking.SeperationWeight = ctx.Value;
+                instancedFlocking.SeparationWeight = ctx.Value;
                 break;
             case UIElements.CohesionSlider:
                 //update with value

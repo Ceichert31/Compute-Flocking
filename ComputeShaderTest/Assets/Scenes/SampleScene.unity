@@ -3436,20 +3436,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb3cba714cc4d334b99aebfb28e224ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _boidsCount: 3000
+  _boidsCount: 6000
   rotationSpeed: 0.01
   _boidSpeed: 25
   boidSpeedVariation: 0.5
   boidMaxSeparationSpeed: 10
-  _neighborDistance: 30
+  _neighborDistance: 26.840105
   avoidanceDistance: 10
-  _alignmentWeight: 5
-  _cohesionWeight: 5
-  _separationWeight: 0
+  _alignmentWeight: 8.881046
+  _cohesionWeight: 8.534084
+  _separationWeight: 25
   _correctionWeight: 0
-  _avoidanceWeight: 0
+  _avoidanceWeight: 6.634125
   spawnRadius: 176.3
-  maximumRadius: 500
+  maximumRadius: 200
   boidFrameSpeed: 5
   frameInterpolation: 1
   shader: {fileID: 7200000, guid: d7b1e61803474fc4a9ae170b63d7c953, type: 3}

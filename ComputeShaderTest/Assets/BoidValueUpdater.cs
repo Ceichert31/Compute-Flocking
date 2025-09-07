@@ -59,6 +59,9 @@ public class BoidValueUpdater : MonoBehaviour
             case UIElements.BoundrySlider:
                 instancedFlocking.MaximumRadius = ctx.Value;
                 break;
+            case UIElements.ResetButton:
+                instancedFlocking.ResetBoids();
+                break;
         }
     }
 }

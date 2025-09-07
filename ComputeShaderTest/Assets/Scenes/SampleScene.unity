@@ -2929,7 +2929,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 400, y: 400}
+  m_AnchoredPosition: {x: 400, y: -400}
   m_SizeDelta: {x: 800, y: 800}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1377301696
@@ -3612,7 +3612,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 0, w: 18.478472}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -3984,6 +3984,7 @@ GameObject:
   - component: {fileID: 1631922845}
   - component: {fileID: 1631922844}
   - component: {fileID: 1631922843}
+  - component: {fileID: 1631922846}
   m_Layer: 5
   m_Name: Reset
   m_TagString: Untagged
@@ -4093,6 +4094,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1631922841}
   m_CullTransparentMesh: 1
+--- !u!114 &1631922846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631922841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a387b1448abd9107c9076b5a3e4eaabf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  updateUIValuesEvent: {fileID: 11400000, guid: aab6bbbeb6714e24789ff7399eee9494, type: 2}
+  uiEvent:
+    UIElement: 9
+    Value: 0
 --- !u!1 &1695638746
 GameObject:
   m_ObjectHideFlags: 0
@@ -4153,7 +4170,7 @@ MonoBehaviour:
   m_StartCorner: 0
   m_StartAxis: 0
   m_CellSize: {x: 300, y: 100}
-  m_Spacing: {x: 100, y: 260}
+  m_Spacing: {x: 100, y: 300}
   m_Constraint: 2
   m_ConstraintCount: 2
 --- !u!1 &1775029685
@@ -4205,16 +4222,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _boidsCount: 6000
   rotationSpeed: 0.01
-  _boidSpeed: 25
+  boidSpeed: 3
   boidSpeedVariation: 0.5
   boidMaxSeparationSpeed: 10
-  _neighborDistance: 26.840105
+  neighborDistance: 1
   avoidanceDistance: 10
-  _alignmentWeight: 8.881046
-  _cohesionWeight: 8.534084
-  _separationWeight: 25
-  _correctionWeight: 0
-  _avoidanceWeight: 6.634125
+  alignmentWeight: 5
+  cohesionWeight: 5
+  separationWeight: 15
+  avoidanceWeight: 5
   spawnRadius: 176.3
   maximumRadius: 200
   boidFrameSpeed: 5
@@ -4227,6 +4243,7 @@ MonoBehaviour:
   boidObject: {fileID: 1294871422}
   animationClip: {fileID: 7400000, guid: 3c0f06227faaaf24b9d7495215f892e8, type: 2}
   isDebugEnabled: 0
+  isRadiusEnabled: 0
   isTerrainDebugEnabled: 0
   debugRayDist: 3
   terrainSampleSphereRadius: 0.03

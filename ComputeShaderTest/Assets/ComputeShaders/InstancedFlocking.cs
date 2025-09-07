@@ -32,7 +32,8 @@ public class InstancedFlocking : MonoBehaviour
         public float sampledTerrainHeight;
         public float groundDistance;
         public float isAvoiding;
-
+        public float radius;
+        
         public DebugData(Vector3 pos)
         {
             position = pos;
@@ -40,6 +41,7 @@ public class InstancedFlocking : MonoBehaviour
             sampledTerrainHeight = 0;
             groundDistance = 0;
             isAvoiding = 0;
+            radius = 0;
         }
     }
 
@@ -203,7 +205,7 @@ public class InstancedFlocking : MonoBehaviour
 
     private const int STRIDE = 11;
 
-    private const int DEBUG_STRIDE = 9;
+    private const int DEBUG_STRIDE = 10;
 
     [Header("Debug Settings")]
     [Tooltip("WARNING! Will affect performance")]
@@ -505,6 +507,9 @@ public class InstancedFlocking : MonoBehaviour
                 debugArray[i].velocity.normalized * debugRayDist,
                 debugArray[i].isAvoiding == 1 ? Color.red : Color.green
             );
+
+            Gizmos.color = Color.gray;
+            Gizmos.DrawWireSphere(debugArray[i].position, debugArray[i].radius);
 
             if (!isTerrainDebugEnabled)
                 continue;

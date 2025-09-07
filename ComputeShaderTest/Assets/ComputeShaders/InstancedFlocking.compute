@@ -17,6 +17,7 @@ struct DebugData
     float sampledTerrainHeight;
     float groundDistance;
     float isAvoiding;
+    float radius;
 };
 
 RWStructuredBuffer<DebugData> _debugBuffer;
@@ -113,10 +114,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     DebugData debugData;
 
-    float3 separation = 0;
-    float3 alignment = 0;
-    float3 cohesion = 0;
-    float3 groundAvoidance = 0;
+    float3 separation = float3(0,0,0);
+    float3 alignment = float3(0,0,0);
+    float3 cohesion = float3(0,0,0);
+    float3 groundAvoidance = float3(0,0,0);
 
     //Calculate noise to be used for speed variation
     float noise = clamp(noise1(_time / 100.0 + boid.noiseOffset), -1, 1) * 2.0 - 1.0;
@@ -127,7 +128,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     //Default 1 because of self
     uint nearbyCount = 0;
     
-      //Sample future positions heightmap
+    //Sample future positions heightmap
     float sampledHeight = GetTerrainHeight(boid.position);
 
     //Calculate distance from ground
@@ -145,11 +146,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         debugData.isAvoiding = 1;
     }
     
-    float3 centerOfMass = _sphereCenter;
+    float3 centerOfMass = float3(0,0,0);
     
     //Check for nearby boids
-    for (uint i = 0; i < (uint)_boidsCount; ++i)
+    for (uint i = 0; i < (uint)_boidsCount; i++)
     {
+        //Skip self
+        if (i == id.x) continue;
+        
         //Calculate the direction from our boid to other boid
         float3 direction = _boidsBuffer[i].position - boid.position;
 
@@ -160,8 +164,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         if (distance <= _neighborDistance)
         {
             //If boid is close, increase separation vector 
-            //separation += direction * (1.0 / distance - 1.0 / _neighborDistance);
-            separation += normalize(direction) / distance;
+            separation += -normalize(direction) * (1.0 - (distance / _neighborDistance));
             
             //Get the sum of each boids velocity
             alignment += _boidsBuffer[i].velocity;
@@ -174,34 +177,35 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         }
     }
 
+    debugData.radius = _neighborDistance;
+
     if (nearbyCount > 0)
     {
         alignment /= nearbyCount;
-
         centerOfMass /= nearbyCount;
-        cohesion = (centerOfMass - boid.position);
-        cohesion = normalize(cohesion);
-
-        //Apply weights
-        separation = (separation * _separationWeight);
-        alignment = (alignment * _alignmentWeight);
-        cohesion = (cohesion * _cohesionWeight);
-        groundAvoidance = (groundAvoidance * _avoidanceWeight);
-        
-        separation = clamp(separation, 0, _maxSeparationSpeed);
+        cohesion = normalize(centerOfMass - boid.position);
+    }else
+    {
+        //alignment = normalize(boid.velocity);
     }
+
+    //Apply weights
+    separation = (separation * _separationWeight);
+    alignment = (alignment * _alignmentWeight);
+    cohesion = (cohesion * _cohesionWeight);
+    groundAvoidance = (groundAvoidance * _avoidanceWeight);
+    separation = clamp(separation, 0, _maxSeparationSpeed);
     
     //Final weighted movement force
     float3 finalForce = cohesion + alignment + separation + groundAvoidance;
 
     if (!InsideBounds(boid.position))
     {
-        //Get direction from center to boid
-        float3 returnVector = normalize(-(boid.position - _sphereCenter));
+        float3 outwardDirection = normalize(boid.position - _sphereCenter);
 
-        //Clamp boids position to a point on the sphere
-        boid.position = returnVector * (_maximumRadius - 5.0);
-        //finalForce = float3(0, 0, 0);
+        boid.position = _sphereCenter + outwardDirection * (_maximumRadius - 5);
+
+        boid.velocity = reflect(boid.velocity, -outwardDirection);
     }
 
     //Lerp towards target direction

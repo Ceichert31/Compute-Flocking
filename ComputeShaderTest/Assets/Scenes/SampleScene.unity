@@ -3441,13 +3441,13 @@ MonoBehaviour:
   _boidSpeed: 25
   boidSpeedVariation: 0.5
   boidMaxSeparationSpeed: 10
-  _neightbourDistance: 30
+  _neighborDistance: 30
   avoidanceDistance: 30
-  _alignmentWeight: 0
-  _cohesionWeight: 0
-  _seperationWeight: 0
+  _alignmentWeight: 5
+  _cohesionWeight: 5
+  _seperationWeight: 5
   _correctionWeight: 0
-  _groundAvoidanceWeight: 0
+  _groundAvoidanceWeight: 5
   spawnRadius: 176.3
   maximumRadius: 500
   boidFrameSpeed: 5

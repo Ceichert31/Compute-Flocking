@@ -184,9 +184,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         alignment /= nearbyCount;
         centerOfMass /= nearbyCount;
         cohesion = normalize(centerOfMass - boid.position);
-    }else
+        if (length(cohesion) < 0.1f)
+        {
+            cohesion = float3(0,0,0);
+        }
+    }
+    else
     {
-        //alignment = normalize(boid.velocity);
+        alignment = boid.velocity;
     }
 
     //Apply weights
@@ -194,10 +199,21 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     alignment = (alignment * _alignmentWeight);
     cohesion = (cohesion * _cohesionWeight);
     groundAvoidance = (groundAvoidance * _avoidanceWeight);
-    separation = clamp(separation, 0, _maxSeparationSpeed);
+
+    //Clamp magnitude of separation
+    if (length(separation) > _maxSeparationSpeed)
+    {
+        separation = normalize(separation) * _maxSeparationSpeed; 
+    }
     
     //Final weighted movement force
     float3 finalForce = cohesion + alignment + separation + groundAvoidance;
+
+    //Lerp towards target direction
+    boid.velocity = lerp(normalize(boid.velocity), finalForce, _rotationSpeed);
+
+    //Set position
+    boid.position += (boid.velocity * velocity * _deltaTime);
 
     if (!InsideBounds(boid.position))
     {
@@ -207,15 +223,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
         boid.velocity = reflect(boid.velocity, outwardDirection);
     }
-
-    //Lerp towards target direction
-    boid.velocity = lerp(normalize(boid.velocity), finalForce, _rotationSpeed);
-
-    //Set position
-    boid.position += (boid.velocity * velocity * _deltaTime);
     
     //Update animation
     boid.frame = boid.frame + velocity * _deltaTime * _boidFrameSpeed;
+
+    if (length(_sphereCenter - boid.position) > _maximumRadius * 2)
+    {
+        boid.position = float3(0,0,0);
+    }
     
     boid.frame %= _numberOfFrames;
     debugData.velocity = boid.velocity;

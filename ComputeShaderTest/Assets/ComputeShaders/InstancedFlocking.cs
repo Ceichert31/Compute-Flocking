@@ -521,8 +521,8 @@ public class InstancedFlocking : MonoBehaviour
                 debugArray[i].isAvoiding == 1 ? Color.red : Color.green
             );
 
-            Gizmos.color = Color.gray;
-            Gizmos.DrawWireSphere(debugArray[i].position, debugArray[i].radius);
+            /*Gizmos.color = Color.gray;
+            Gizmos.DrawWireSphere(debugArray[i].position, debugArray[i].radius);*/
 
             if (!isTerrainDebugEnabled)
                 continue;

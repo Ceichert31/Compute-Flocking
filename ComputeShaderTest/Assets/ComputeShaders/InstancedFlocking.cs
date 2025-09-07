@@ -61,16 +61,16 @@ public class InstancedFlocking : MonoBehaviour
     }
     public float BoidSpeed
     {
-        get => _boidSpeed;
-        set => PropertyChanged(ref _boidSpeed, value, nameof(_boidSpeed));
+        get => boidSpeed;
+        set => PropertyChanged(ref boidSpeed, value, nameof(boidSpeed));
     }
     /// <summary>
     /// The radius in which boids detect one another
     /// </summary>
     public float NeighbourDistance
     {
-        get => _neighborDistance;
-        set => PropertyChanged(ref _neighborDistance, value, nameof(_neighborDistance));
+        get => neighborDistance;
+        set => PropertyChanged(ref neighborDistance, value, nameof(neighborDistance));
     }
     /// <summary>
     /// The force at which boids match their velocity
@@ -78,16 +78,16 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     public float AlignmentWeight
     {
-        get => _alignmentWeight;
-        set => PropertyChanged(ref _alignmentWeight, value, nameof(_alignmentWeight));
+        get => alignmentWeight;
+        set => PropertyChanged(ref alignmentWeight, value, nameof(alignmentWeight));
     }
     /// <summary>
     /// The force at which boids move towards large groups of boids
     /// </summary>
     public float CohesionWeight
     {
-        get => _cohesionWeight;
-        set => PropertyChanged(ref _cohesionWeight, value, nameof(_cohesionWeight));
+        get => cohesionWeight;
+        set => PropertyChanged(ref cohesionWeight, value, nameof(cohesionWeight));
     }
     /// <summary>
     /// The force at which boids move away from each
@@ -95,8 +95,8 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     public float SeparationWeight
     {
-        get => _separationWeight;
-        set => PropertyChanged(ref _separationWeight, value, nameof(_separationWeight));
+        get => separationWeight;
+        set => PropertyChanged(ref separationWeight, value, nameof(separationWeight));
     }
     /// <summary>
     /// The force at which a boid moves
@@ -104,16 +104,16 @@ public class InstancedFlocking : MonoBehaviour
     /// </summary>
     public float GroundAvoidanceWeight
     {
-        get => _avoidanceWeight;
-        set => PropertyChanged(ref _avoidanceWeight, value, nameof(_avoidanceWeight));
+        get => avoidanceWeight;
+        set => PropertyChanged(ref avoidanceWeight, value, nameof(avoidanceWeight));
     }
     /// <summary>
     /// How far boids can go from their starting position
     /// </summary>
     public float MaximumRadius
     {
-        get => _maximumRadius;
-        set => PropertyChanged(ref  _maximumRadius, value, nameof(_maximumRadius));
+        get => maximumRadius;
+        set => PropertyChanged(ref  maximumRadius, value, nameof(maximumRadius));
     }
     #endregion
 
@@ -123,35 +123,35 @@ public class InstancedFlocking : MonoBehaviour
     public float rotationSpeed = 1f;
     
     [SerializeField]
-    private float _boidSpeed = 3f;
+    private float boidSpeed = 3f;
     public float boidSpeedVariation = 1f;
     public float boidMaxSeparationSpeed = 5f;
 
     [Header("Boid Avoidance Values")]
     [SerializeField]
-    private float _neighborDistance = 1f;
+    private float neighborDistance = 1f;
     [Tooltip("The distance boids start to avoid the ground")]
     public float avoidanceDistance = 3f;
 
     [Header("Boid Weights")]
     [Range(0, 1000f)]
     [SerializeField]
-    private float _alignmentWeight;
+    private float alignmentWeight;
     [Range(0, 1000f)]
     [SerializeField]
-    private float _cohesionWeight;
+    private float cohesionWeight;
     [Range(0, 1000f)]
     [SerializeField]
-    private float _separationWeight;
+    private float separationWeight;
     [Range(0, 1000f)]
     [SerializeField]
-    private float _avoidanceWeight;
+    private float avoidanceWeight;
 
     [Header("Boundary Values")]
     [SerializeField]
     private float spawnRadius;
     [SerializeField]
-    private float _maximumRadius;
+    private float maximumRadius;
 
     [Header("Animator Values")]
     [SerializeField]
@@ -181,7 +181,7 @@ public class InstancedFlocking : MonoBehaviour
     private AnimationClip animationClip;
     
     private Animator animator;
-    private SkinnedMeshRenderer boidSMR;
+    private SkinnedMeshRenderer boidSkinnedMeshRenderer;
 
     //Computation shader private variables
     private int kernelHandle;
@@ -257,11 +257,11 @@ public class InstancedFlocking : MonoBehaviour
         boidObject.SetActive(true);
         
         //Get skinned mesh renderer from prefab
-        if (boidSMR == null)
+        if (boidSkinnedMeshRenderer == null)
         {
-            boidSMR = boidObject.GetComponentInChildren<SkinnedMeshRenderer>();
+            boidSkinnedMeshRenderer = boidObject.GetComponentInChildren<SkinnedMeshRenderer>();
             //Get starting mesh
-            boidMesh = boidSMR.sharedMesh;
+            boidMesh = boidSkinnedMeshRenderer.sharedMesh;
         }
 
         if (animator == null)
@@ -286,7 +286,7 @@ public class InstancedFlocking : MonoBehaviour
 
         //Calculate time per frame
         float perFrameTime = animationClip.length / numberOfFrames;
-        int vertexCount = boidSMR.sharedMesh.vertexCount;
+        int vertexCount = boidSkinnedMeshRenderer.sharedMesh.vertexCount;
 
         //Generate new compute buffer
         vertexAnimationBuffer = new ComputeBuffer(vertexCount * numberOfFrames, 16);
@@ -304,7 +304,7 @@ public class InstancedFlocking : MonoBehaviour
             animator.Update(0.0f);
 
             //Bake mesh with new frame
-            boidSMR.BakeMesh(bakedMesh);
+            boidSkinnedMeshRenderer.BakeMesh(bakedMesh);
 
             //Update verticies
             for (int j = 0; j < vertexCount; ++j)
@@ -380,7 +380,7 @@ public class InstancedFlocking : MonoBehaviour
         shader.SetFloat("_avoidanceWeight", GroundAvoidanceWeight);
 
         //Set boundry properties
-        shader.SetFloat("_maximumRadius", _maximumRadius);
+        shader.SetFloat("_maximumRadius", maximumRadius);
         shader.SetVector("_sphereCenter", transform.position);
 
         //Set animation properties
@@ -423,15 +423,15 @@ public class InstancedFlocking : MonoBehaviour
         switch (property)
         {
             case float:
-                shader.SetFloat(variableName, (float)(object)property);
+                shader.SetFloat("_" + variableName, (float)(object)property);
                 break;
 
             case int:
-                shader.SetInt(nameof(property), (int)(object)property);
+                shader.SetInt("_" + variableName, (int)(object)property);
                 break;
 
             case string:
-                shader.SetVector(nameof(property), (Vector3)(property as object));
+                shader.SetVector("_" + variableName, (Vector3)(property as object));
                 break;
         }
     }
@@ -495,7 +495,7 @@ public class InstancedFlocking : MonoBehaviour
             return;
         
         Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, _maximumRadius);
+        Gizmos.DrawWireSphere(transform.position, maximumRadius);
 
         //Render debug visuals for each boid
         for (int i = 0; i < debugArray.Length; ++i)

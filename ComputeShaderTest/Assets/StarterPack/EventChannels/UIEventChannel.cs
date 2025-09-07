@@ -28,4 +28,6 @@ public enum UIElements
     BoidSpeedSlider,
     BoidDistanceSlider,
     BoidCountSlider,
+    BoundrySlider,
+    ResetButton,
 }

@@ -4,6 +4,8 @@ using Random = UnityEngine.Random;
 
 public class InstancedFlocking : MonoBehaviour
 {
+
+    #region Structs
     public struct Boid
     {
         public Vector3 position;
@@ -23,6 +25,8 @@ public class InstancedFlocking : MonoBehaviour
             padding.x = 0;
             padding.y = padding.z = 0;
         }
+        
+        
     }
 
     public struct DebugData
@@ -44,40 +48,30 @@ public class InstancedFlocking : MonoBehaviour
             radius = 0;
         }
     }
+    private const int STRIDE = 11;
 
-    [Header("Boid General Settings")]
+    private const int DEBUG_STRIDE = 10;
+    #endregion
+    
+    #region Properties
     public int BoidsCount
     {
         get => _boidsCount;
         set => PropertyChanged(ref _boidsCount, value, nameof(_boidsCount));
     }
-    [SerializeField]
-    private int _boidsCount = 3000;
-
-    [Header("Boid Movement Values")]
-    public float rotationSpeed = 1f;
     public float BoidSpeed
     {
         get => _boidSpeed;
         set => PropertyChanged(ref _boidSpeed, value, nameof(_boidSpeed));
     }
-    [SerializeField]
-    private float _boidSpeed = 3f;
-    public float boidSpeedVariation = 1f;
-    public float boidMaxSeparationSpeed = 5f;
-
-    [Header("Boid Avoidance Values")]
+    /// <summary>
+    /// The radius in which boids detect one another
+    /// </summary>
     public float NeighbourDistance
     {
         get => _neighborDistance;
         set => PropertyChanged(ref _neighborDistance, value, nameof(_neighborDistance));
     }
-    [SerializeField]
-    private float _neighborDistance = 1f;
-    
-    public float avoidanceDistance = 3f;
-
-    [Header("Boid Weights")]
     /// <summary>
     /// The force at which boids match their velocity
     /// with other nearby boids
@@ -87,14 +81,6 @@ public class InstancedFlocking : MonoBehaviour
         get => _alignmentWeight;
         set => PropertyChanged(ref _alignmentWeight, value, nameof(_alignmentWeight));
     }
-
-    /// <summary>
-    /// <inheritdoc cref="AlignmentWeight"/>
-    /// </summary>
-    [Range(0, 1000f)]
-    [SerializeField]
-    private float _alignmentWeight;
-
     /// <summary>
     /// The force at which boids move towards large groups of boids
     /// </summary>
@@ -103,14 +89,6 @@ public class InstancedFlocking : MonoBehaviour
         get => _cohesionWeight;
         set => PropertyChanged(ref _cohesionWeight, value, nameof(_cohesionWeight));
     }
-
-    /// <summary>
-    /// <inheritdoc cref="CohesionWeight"/>
-    /// </summary>
-    [Range(0, 1000f)]
-    [SerializeField]
-    private float _cohesionWeight;
-
     /// <summary>
     /// The force at which boids move away from each
     /// other after coming in close contact
@@ -120,31 +98,6 @@ public class InstancedFlocking : MonoBehaviour
         get => _separationWeight;
         set => PropertyChanged(ref _separationWeight, value, nameof(_separationWeight));
     }
-
-    /// <summary>
-    /// <inheritdoc cref="SeparationWeight"/>
-    /// </summary>
-    [Range(0, 1000f)]
-    [SerializeField]
-    private float _separationWeight;
-
-    /// <summary>
-    /// The force at which a boid returns towards
-    /// the center of the flock after going out of bounds
-    /// </summary>
-    public float CorrectionWeight
-    {
-        get => _correctionWeight;
-        set => PropertyChanged(ref _correctionWeight, value, nameof(_correctionWeight));
-    }
-
-    /// <summary>
-    /// <inheritdoc cref="CorrectionWeight"/>
-    /// </summary>
-    [Range(0, 1000f)]
-    [SerializeField]
-    private float _correctionWeight;
-
     /// <summary>
     /// The force at which a boid moves
     /// away from the ground
@@ -154,94 +107,108 @@ public class InstancedFlocking : MonoBehaviour
         get => _avoidanceWeight;
         set => PropertyChanged(ref _avoidanceWeight, value, nameof(_avoidanceWeight));
     }
-
     /// <summary>
-    /// <inheritdoc cref="GroundAvoidanceWeight"/>
+    /// How far boids can go from their starting position
     /// </summary>
+    public float MaximumRadius
+    {
+        get => _maximumRadius;
+        set => PropertyChanged(ref  _maximumRadius, value, nameof(_maximumRadius));
+    }
+    #endregion
+
+    [Header("Boid Movement Values")]
+    [SerializeField]
+    private int _boidsCount = 3000;
+    public float rotationSpeed = 1f;
+    
+    [SerializeField]
+    private float _boidSpeed = 3f;
+    public float boidSpeedVariation = 1f;
+    public float boidMaxSeparationSpeed = 5f;
+
+    [Header("Boid Avoidance Values")]
+    [SerializeField]
+    private float _neighborDistance = 1f;
+    [Tooltip("The distance boids start to avoid the ground")]
+    public float avoidanceDistance = 3f;
+
+    [Header("Boid Weights")]
+    [Range(0, 1000f)]
+    [SerializeField]
+    private float _alignmentWeight;
+    [Range(0, 1000f)]
+    [SerializeField]
+    private float _cohesionWeight;
+    [Range(0, 1000f)]
+    [SerializeField]
+    private float _separationWeight;
     [Range(0, 1000f)]
     [SerializeField]
     private float _avoidanceWeight;
 
-    [Header("Boundry Values")]
-    public float spawnRadius;
-    public float maximumRadius;
+    [Header("Boundary Values")]
+    [SerializeField]
+    private float spawnRadius;
+    [SerializeField]
+    private float _maximumRadius;
 
     [Header("Animator Values")]
-    public float boidFrameSpeed = 10f;
-    public bool frameInterpolation = true;
+    [SerializeField]
+    private float boidFrameSpeed = 10f;
+    [SerializeField]
+    private bool frameInterpolation = true;
     private int numberOfFrames;
 
     [Header("Boid References")]
-    public ComputeShader shader;
-    public Mesh boidMesh;
-    public Material boidMaterial;
-    public Transform target;
-
+    [SerializeField]
+    private ComputeShader shader;
+    [SerializeField]
+    private Mesh boidMesh;
+    [SerializeField]
+    private Material boidMaterial;
+    [SerializeField]
+    private Transform target;
     [SerializeField]
     private Terrain terrain;
 
     [Header("Animator References")]
-    public GameObject boidObject;
+    [SerializeField]
+    private GameObject boidObject;
 
     [Tooltip("Animation we want to use")]
-    public AnimationClip animationClip;
+    [SerializeField]
+    private AnimationClip animationClip;
+    
     private Animator animator;
     private SkinnedMeshRenderer boidSMR;
 
+    //Computation shader private variables
     private int kernelHandle;
-
+    private int groupSizeX;
+    private int numberOfBoids;
+    
     private ComputeBuffer boidsBuffer;
     private ComputeBuffer vertexAnimationBuffer;
-
     private Boid[] boidsArray;
-
-    private int groupSizeX;
-
-    private int numberOfBoids;
-
+    
+    //Rendering variables
     private RenderParams renderParams;
-
     private GraphicsBuffer argsBuffer;
-
-    private const int STRIDE = 11;
-
-    private const int DEBUG_STRIDE = 10;
 
     [Header("Debug Settings")]
     [Tooltip("WARNING! Will affect performance")]
     public bool isDebugEnabled;
+    public bool isRadiusEnabled;
     public bool isTerrainDebugEnabled;
-    public float debugRayDist = 5.0f;
+    [SerializeField]
+    private float debugRayDist = 5.0f;
+    [SerializeField]
+    private float terrainSampleSphereRadius = 0.3f;
     private ComputeBuffer debugBuffer;
     private DebugData[] debugArray;
 
-    /// <summary>
-    /// Updates a property in the shader
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="property"></param>
-    private void PropertyChanged<T>(ref T property, object value, string variableName)
-    {
-        //Set property
-        property = (T)value;
-
-        //Update in shader
-        switch (property)
-        {
-            case float:
-                shader.SetFloat(variableName, (float)(object)property);
-                break;
-
-            case int:
-                shader.SetInt(nameof(property), (int)(object)property);
-                break;
-
-            case string:
-                shader.SetVector(nameof(property), (Vector3)(property as object));
-                break;
-        }
-    }
-
+    #region Initialization
     private void Awake()
     {
         kernelHandle = shader.FindKernel("CSMain");
@@ -260,15 +227,6 @@ public class InstancedFlocking : MonoBehaviour
             worldBounds = new Bounds(Vector3.zero, Vector3.one * 10000),
         };
     }
-
-    void InitTerrain()
-    {
-        shader.SetTexture(kernelHandle, "_heightMap", terrain.terrainData.heightmapTexture);
-        shader.SetFloat("_heightmapResolution", terrain.terrainData.heightmapResolution);
-        shader.SetVector("_terrainSize", terrain.terrainData.size);
-        shader.SetVector("_terrainPosition", terrain.transform.position);
-    }
-
     /// <summary>
     /// Creates an array of boids
     /// </summary>
@@ -294,103 +252,6 @@ public class InstancedFlocking : MonoBehaviour
             debugArray[i] = new DebugData(Vector3.zero);
         }
     }
-
-    /// <summary>
-    /// Creates a compute buffer
-    /// </summary>
-    void InitShader()
-    {
-        // Init graphics buffer
-        argsBuffer = new GraphicsBuffer(
-            GraphicsBuffer.Target.IndirectArguments,
-            1,
-            GraphicsBuffer.IndirectDrawIndexedArgs.size
-        );
-
-        //Create data buffer object
-        GraphicsBuffer.IndirectDrawIndexedArgs[] data = new GraphicsBuffer.IndirectDrawIndexedArgs[
-            1
-        ];
-
-        //Set indexCountPerInstance to vertex count of boid mesh
-        data[0].indexCountPerInstance = boidMesh.GetIndexCount(0);
-
-        //Set instance count to the number of boids we want
-        data[0].instanceCount = (uint)numberOfBoids;
-
-        //Set buffers data so data is on GPU
-        argsBuffer.SetData(data);
-
-        //Init boid buffer
-        boidsBuffer = new ComputeBuffer(numberOfBoids, STRIDE * sizeof(float));
-
-        //Cache data on GPU
-        boidsBuffer.SetData(boidsArray);
-
-        //Set boid properties
-        shader.SetInt("_boidsCount", numberOfBoids);
-        shader.SetFloat("_rotationSpeed", rotationSpeed);
-        shader.SetFloat("_boidSpeed", BoidSpeed);
-        shader.SetFloat("_neighborDistance", NeighbourDistance);
-        shader.SetFloat("_avoidanceDistance", avoidanceDistance);
-        shader.SetFloat("_boidSpeedVariation", boidSpeedVariation);
-        shader.SetVector("_flockPosition", target.transform.position);
-        shader.SetFloat("_maxSeparationSpeed", boidMaxSeparationSpeed);
-
-        //Set weight properties
-        shader.SetFloat("_alignmentWeight", AlignmentWeight);
-        shader.SetFloat("_cohesionWeight", CohesionWeight);
-        shader.SetFloat("_seperationWeight", SeparationWeight);
-        shader.SetFloat("_avoidanceWeight", GroundAvoidanceWeight);
-        shader.SetFloat("_correctionWeight", CorrectionWeight);
-
-        //Set boundry properties
-        shader.SetFloat("_maximumRadius", maximumRadius);
-        shader.SetVector("_sphereCenter", transform.position);
-
-        //Set animation properties
-        shader.SetInt("_numberOfFrames", numberOfFrames);
-        shader.SetFloat("_boidFrameSpeed", boidFrameSpeed);
-
-        //Set buffer properties
-        shader.SetBuffer(kernelHandle, "_boidsBuffer", boidsBuffer);
-
-        //Set Material properties
-        boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
-        boidMaterial.SetInt("numberOfFrames", numberOfFrames);
-
-        //Enabling smooth interpolation between frames in litfowardshader
-        if (frameInterpolation && !boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
-            boidMaterial.EnableKeyword("FRAME_INTERPOLATION");
-        if (!frameInterpolation && boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
-            boidMaterial.DisableKeyword("FRAME_INTERPOLATION");
-
-        //Debug properties
-        debugBuffer = new ComputeBuffer(numberOfBoids, DEBUG_STRIDE * sizeof(float));
-        debugBuffer.SetData(debugArray);
-
-        shader.SetBuffer(kernelHandle, "_debugBuffer", debugBuffer);
-    }
-
-    private void Update()
-    {
-        //Update compute shaders uniform time values
-        shader.SetFloat("_time", Time.time);
-        shader.SetFloat("_deltaTime", Time.deltaTime);
-
-        //Dispatch compute shader to GPU
-        shader.Dispatch(kernelHandle, groupSizeX, 1, 1);
-
-        //Render updated boids
-        //Change to instanced rendering eventually
-        Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
-
-        if (!isDebugEnabled)
-            return;
-        //Retrive debug data
-        debugBuffer.GetData(debugArray);
-    }
-
     private void GenerateSkinnedAnimationForGPUBuffer()
     {
         boidObject.SetActive(true);
@@ -463,16 +324,120 @@ public class InstancedFlocking : MonoBehaviour
         //Disable object
         boidObject.SetActive(false);
     }
-
-    private void OnDestroy()
+    void InitTerrain()
     {
-        //Clean buffers on destroy
-        boidsBuffer?.Release();
-        argsBuffer?.Release();
-        debugBuffer?.Release();
-        vertexAnimationBuffer?.Release();
+        shader.SetTexture(kernelHandle, "_heightMap", terrain.terrainData.heightmapTexture);
+        shader.SetFloat("_heightmapResolution", terrain.terrainData.heightmapResolution);
+        shader.SetVector("_terrainSize", terrain.terrainData.size);
+        shader.SetVector("_terrainPosition", terrain.transform.position);
     }
+       /// <summary>
+    /// Creates a compute buffer
+    /// </summary>
+    void InitShader()
+    {
+        // Init graphics buffer
+        argsBuffer = new GraphicsBuffer(
+            GraphicsBuffer.Target.IndirectArguments,
+            1,
+            GraphicsBuffer.IndirectDrawIndexedArgs.size
+        );
 
+        //Create data buffer object
+        GraphicsBuffer.IndirectDrawIndexedArgs[] data = new GraphicsBuffer.IndirectDrawIndexedArgs[
+            1
+        ];
+
+        //Set indexCountPerInstance to vertex count of boid mesh
+        data[0].indexCountPerInstance = boidMesh.GetIndexCount(0);
+
+        //Set instance count to the number of boids we want
+        data[0].instanceCount = (uint)numberOfBoids;
+
+        //Set buffers data so data is on GPU
+        argsBuffer.SetData(data);
+
+        //Init boid buffer
+        boidsBuffer = new ComputeBuffer(numberOfBoids, STRIDE * sizeof(float));
+
+        //Cache data on GPU
+        boidsBuffer.SetData(boidsArray);
+
+        //Set boid properties
+        shader.SetInt("_boidsCount", numberOfBoids);
+        shader.SetFloat("_rotationSpeed", rotationSpeed);
+        shader.SetFloat("_boidSpeed", BoidSpeed);
+        shader.SetFloat("_neighborDistance", NeighbourDistance);
+        shader.SetFloat("_avoidanceDistance", avoidanceDistance);
+        shader.SetFloat("_boidSpeedVariation", boidSpeedVariation);
+        shader.SetVector("_flockPosition", target.transform.position);
+        shader.SetFloat("_maxSeparationSpeed", boidMaxSeparationSpeed);
+
+        //Set weight properties
+        shader.SetFloat("_alignmentWeight", AlignmentWeight);
+        shader.SetFloat("_cohesionWeight", CohesionWeight);
+        shader.SetFloat("_seperationWeight", SeparationWeight);
+        shader.SetFloat("_avoidanceWeight", GroundAvoidanceWeight);
+
+        //Set boundry properties
+        shader.SetFloat("_maximumRadius", _maximumRadius);
+        shader.SetVector("_sphereCenter", transform.position);
+
+        //Set animation properties
+        shader.SetInt("_numberOfFrames", numberOfFrames);
+        shader.SetFloat("_boidFrameSpeed", boidFrameSpeed);
+
+        //Set buffer properties
+        shader.SetBuffer(kernelHandle, "_boidsBuffer", boidsBuffer);
+
+        //Set Material properties
+        boidMaterial.SetBuffer("boidsBuffer", boidsBuffer);
+        boidMaterial.SetInt("numberOfFrames", numberOfFrames);
+
+        //Enabling smooth interpolation between frames in litfowardshader
+        if (frameInterpolation && !boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
+            boidMaterial.EnableKeyword("FRAME_INTERPOLATION");
+        if (!frameInterpolation && boidMaterial.IsKeywordEnabled("FRAME_INTERPOLATION"))
+            boidMaterial.DisableKeyword("FRAME_INTERPOLATION");
+
+        //Debug properties
+        debugBuffer = new ComputeBuffer(numberOfBoids, DEBUG_STRIDE * sizeof(float));
+        debugBuffer.SetData(debugArray);
+
+        shader.SetBuffer(kernelHandle, "_debugBuffer", debugBuffer);
+    }
+    #endregion
+    
+    #region Helper Methods
+    /// <summary>
+    /// Updates a property in the shader
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="property"></param>
+    private void PropertyChanged<T>(ref T property, object value, string variableName)
+    {
+        //Set property
+        property = (T)value;
+
+        //Update in shader
+        switch (property)
+        {
+            case float:
+                shader.SetFloat(variableName, (float)(object)property);
+                break;
+
+            case int:
+                shader.SetInt(nameof(property), (int)(object)property);
+                break;
+
+            case string:
+                shader.SetVector(nameof(property), (Vector3)(property as object));
+                break;
+        }
+    }
+    /// <summary>
+    /// Re-initializes boids
+    /// </summary>
     public void ResetBoids()
     {
         //Clean buffers on destroy
@@ -497,36 +462,60 @@ public class InstancedFlocking : MonoBehaviour
             worldBounds = new Bounds(Vector3.zero, Vector3.one * 10000),
         };
     }
+    #endregion
+    private void Update()
+    {
+        //Update compute shaders uniform time values
+        shader.SetFloat("_time", Time.time);
+        shader.SetFloat("_deltaTime", Time.deltaTime);
 
-    [SerializeField]
-    private float terrainSampleSphereRadius = 0.3f;
+        //Dispatch compute shader to GPU
+        shader.Dispatch(kernelHandle, groupSizeX, 1, 1);
 
+        //Render updated boids
+        //Change to instanced rendering eventually
+        Graphics.RenderMeshIndirect(renderParams, boidMesh, argsBuffer);
+
+        if (!isDebugEnabled)
+            return;
+        //Retrieve debug data
+        debugBuffer.GetData(debugArray);
+    }
+    private void OnDestroy()
+    {
+        //Clean buffers on destroy
+        boidsBuffer?.Release();
+        argsBuffer?.Release();
+        debugBuffer?.Release();
+        vertexAnimationBuffer?.Release();
+    }
     private void OnDrawGizmosSelected()
     {
-        /*Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);*/
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, maximumRadius);
-
         if (!isDebugEnabled || debugArray == null)
             return;
+        
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireSphere(transform.position, _maximumRadius);
 
         //Render debug visuals for each boid
         for (int i = 0; i < debugArray.Length; ++i)
         {
-            //Render velocity and display avoidance
+            //Render velocity and display terrain avoidance
             Debug.DrawRay(
                 debugArray[i].position,
                 debugArray[i].velocity.normalized * debugRayDist,
                 debugArray[i].isAvoiding == 1 ? Color.red : Color.green
             );
+            
+            //Render detection radius
+            if (isRadiusEnabled)
+            {
+                Gizmos.color = Color.gray;
+                Gizmos.DrawWireSphere(debugArray[i].position, debugArray[i].radius);
+            }
 
-            /*Gizmos.color = Color.gray;
-            Gizmos.DrawWireSphere(debugArray[i].position, debugArray[i].radius);*/
-
-            if (!isTerrainDebugEnabled)
-                continue;
-
+            //Render terrain sample positions
+            if (!isTerrainDebugEnabled) continue;
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(
                 new Vector3(

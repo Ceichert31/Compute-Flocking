@@ -15,11 +15,14 @@ public class SliderUpdateValue : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI sliderText;
 
+    [SerializeField]
+    private string format = "0.00";
+
     private void Start()
     {
         slider = GetComponent<Slider>();
 
-        sliderText.text = slider.value.ToString("0.00");
+        sliderText.text = slider.value.ToString(format);
 
         slider.onValueChanged.AddListener(
             (x) =>

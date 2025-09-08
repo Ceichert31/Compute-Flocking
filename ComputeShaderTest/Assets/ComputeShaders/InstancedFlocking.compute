@@ -226,11 +226,6 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     //Update animation
     boid.frame = boid.frame + velocity * _deltaTime * _boidFrameSpeed;
-
-    if (length(_sphereCenter - boid.position) > _maximumRadius * 2)
-    {
-        boid.position = float3(0,0,0);
-    }
     
     boid.frame %= _numberOfFrames;
     debugData.velocity = boid.velocity;

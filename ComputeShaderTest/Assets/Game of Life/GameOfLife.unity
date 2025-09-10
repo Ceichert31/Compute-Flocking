@@ -421,9 +421,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4847d55e53458755aef92fc49311757, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rows: 10
-  columns: 10
-  gridDistance: 1
+  _rows: 10
+  _columns: 10
+  playGame: 0
+  playSpeed: 1
   cubePrefab: {fileID: 2235011248107628064, guid: 305f01f13716a68fbb07e7d4f333917f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

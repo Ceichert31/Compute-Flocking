@@ -34,8 +34,14 @@ public class ConwaysGameOfLife : MonoBehaviour
 
     [SerializeField]
     private bool playGame;
+
+    [SerializeField]
+    private float playSpeed = 1f;
+
+    private float playTimer;
     
-    private const int GRID_DISTANCE = 3;
+    private const float TIME_UNTIL_UPDATE = 5f;
+    private const int GRID_DISTANCE = 2;
     
     [Header("Game of Life References")]
     [SerializeField]
@@ -52,6 +58,13 @@ public class ConwaysGameOfLife : MonoBehaviour
     private void Update()
     {
         if (!playGame) return;
+        
+        playTimer -= Time.deltaTime * playSpeed;
+        
+        //Update timer
+        if (playTimer > 0) return;
+        
+        playTimer = TIME_UNTIL_UPDATE;
         GameOfLife();
     }
 

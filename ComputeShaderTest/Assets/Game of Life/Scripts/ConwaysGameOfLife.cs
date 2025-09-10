@@ -55,14 +55,20 @@ public class ConwaysGameOfLife : MonoBehaviour
         GameOfLife();
     }
 
+    [ContextMenu("Next Turn")]
+    public void ProgressGame()
+    {
+        GameOfLife();
+    }
+
     /// <summary>
     /// Logic for the game of life
     /// </summary>
     private void GameOfLife()
     {
-        for (int x = 0; x < _rows * GRID_DISTANCE; x += GRID_DISTANCE)
+        for (int x = 0; x < _rows; ++x)
         {
-            for (int y = 0; y < _columns * GRID_DISTANCE; y += GRID_DISTANCE)
+            for (int y = 0; y < _columns; ++y)
             {
                 int count = CountNeighbors(x, y);
 
@@ -101,12 +107,12 @@ public class ConwaysGameOfLife : MonoBehaviour
         {
             for (int col = -1; col <= 1; ++col)
             {
-                if (lin == 0 || col == 0) continue;
-
                 int xIndex = x + col, yIndex = y + lin;
                 
-                xIndex %= _columns;
-                yIndex %= _rows;
+                if (lin == x || col == y) continue;
+                
+                /*xIndex %= _columns;
+                yIndex %= _rows;*/
 
                 if (GetValue(xIndex, yIndex))
                 {
@@ -153,6 +159,8 @@ public class ConwaysGameOfLife : MonoBehaviour
     //Function for creating grid
     public void CreateGrid()
     {
+        transform.position = new (Columns * Rows / GRID_DISTANCE, Rows * Rows / GRID_DISTANCE, 0);
+        
         //If grid is full, empty before adding more elements
         if (grid.Count > 0)
         {
@@ -160,14 +168,14 @@ public class ConwaysGameOfLife : MonoBehaviour
         }
         
         //Iterate through and populate
-        for (int x = 0; x < _rows * GRID_DISTANCE; x += GRID_DISTANCE)
+        for (int x = 0; x < _rows; ++x)
         {
-            for (int y = 0; y < _columns * GRID_DISTANCE; y += GRID_DISTANCE)
+            for (int y = 0; y < _columns; ++y)
             {
                 key.Set(x, y);
-                GameObject instance = Instantiate(cubePrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                GameObject instance = Instantiate(cubePrefab, new Vector3(x * GRID_DISTANCE, y * GRID_DISTANCE, 0), Quaternion.identity, transform);
                 instance.name = $"ConwaysGameOfLife_{x},{y}";
-                instance.SetActive(Random.Range(0, 1) == 1);
+                instance.SetActive(Random.Range(0, 2) == 1);
                 grid.Add(key, instance);
             }
         }
@@ -179,9 +187,9 @@ public class ConwaysGameOfLife : MonoBehaviour
     [ContextMenu("Clear Grid")]
     public void ClearGrid()
     {
-        for (int x = 0; x < _rows * GRID_DISTANCE; x += GRID_DISTANCE)
+        for (int x = 0; x < _rows; ++x)
         {
-            for (int y = 0; y < _columns * GRID_DISTANCE; y += GRID_DISTANCE)
+            for (int y = 0; y < _columns; ++y)
             {
                 key.Set(x, y);
                 

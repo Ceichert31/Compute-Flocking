@@ -31,10 +31,31 @@ public class ConwaysGameOfLife : MonoBehaviour
     }
     [SerializeField]
     private int _columns = 10;
-
+    public bool PlayGame
+    {
+        get
+        {
+            return playGame;
+        }
+        set
+        {
+            playGame = value;
+        }
+    }
     [SerializeField]
     private bool playGame;
-
+    
+    public float PlaySpeed
+    {
+        get
+        {
+            return playSpeed;
+        }
+        set
+        {
+            playSpeed = value;
+        }
+    }
     [SerializeField]
     private float playSpeed = 1f;
 

@@ -7,12 +7,6 @@ public class SliderUpdateValue : MonoBehaviour
     private Slider slider;
 
     [SerializeField]
-    private UIEventChannel uiOnValueChangeEvent;
-
-    [SerializeField]
-    private UIEvent uiEvent;
-
-    [SerializeField]
     private TextMeshProUGUI sliderText;
 
     [SerializeField]
@@ -28,8 +22,6 @@ public class SliderUpdateValue : MonoBehaviour
             (x) =>
             {
                 sliderText.text = x.ToString("0.00");
-                uiEvent.Value = x;
-                uiOnValueChangeEvent.CallEvent(uiEvent);
             }
         );
     }

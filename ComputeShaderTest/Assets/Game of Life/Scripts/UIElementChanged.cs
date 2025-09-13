@@ -20,7 +20,7 @@ public class UIElementChanged : MonoBehaviour
    }
    public void UpdatePlayGame(BoolEvent ctx)
    {
-      gameOfLife.PlayGame = ctx.Value;
+      gameOfLife.PauseGame = ctx.Value;
    }
    public void UpdatePlaySpeed(FloatEvent ctx)
    {

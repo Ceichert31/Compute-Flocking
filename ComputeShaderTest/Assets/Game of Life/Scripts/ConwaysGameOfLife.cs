@@ -13,8 +13,8 @@ public class ConwaysGameOfLife : MonoBehaviour
         get => _rows;
         set
         {
-            _rows = value;
             CreateGrid();
+            _rows = value;
         }
     }
     [SerializeField]
@@ -25,25 +25,39 @@ public class ConwaysGameOfLife : MonoBehaviour
         get => _columns;
         set
         {
-            _columns = value;
             CreateGrid();
+            _columns = value;
         }
     }
     [SerializeField]
     private int _columns = 10;
-    public bool PlayGame
+    public bool PauseGame
     {
         get
         {
-            return playGame;
+            return pauseGame;
         }
         set
         {
-            playGame = value;
+            pauseGame = value;
         }
     }
     [SerializeField]
-    private bool playGame;
+    private bool pauseGame;
+    
+    public bool EnableWrapping
+    {
+        get
+        {
+            return enableWrapping;
+        }
+        set
+        {
+            enableWrapping = value;
+        }
+    }
+    [SerializeField]
+    private bool enableWrapping;
     
     public float PlaySpeed
     {
@@ -78,7 +92,7 @@ public class ConwaysGameOfLife : MonoBehaviour
     }
     private void Update()
     {
-        if (!playGame) return;
+        if (pauseGame) return;
         
         playTimer -= Time.deltaTime * playSpeed;
         
@@ -193,7 +207,8 @@ public class ConwaysGameOfLife : MonoBehaviour
     //Function for creating grid
     public void CreateGrid()
     {
-        transform.position = new (Columns * Rows / GRID_DISTANCE, Rows * Rows / GRID_DISTANCE, 0);
+        //transform.position = new (-(Rows / GRID_DISTANCE), -(Columns / GRID_DISTANCE), 0);
+        Camera.main.transform.position = new (Rows, Columns, -1 * (Rows + Columns));
         
         //If grid is full, empty before adding more elements
         if (grid.Count > 0)
@@ -202,13 +217,13 @@ public class ConwaysGameOfLife : MonoBehaviour
         }
         
         //Iterate through and populate
-        for (int x = 0; x < _rows; ++x)
+        for (int x = 0; x < Rows; ++x)
         {
-            for (int y = 0; y < _columns; ++y)
+            for (int y = 0; y < Columns; ++y)
             {
                 key.Set(x, y);
                 GameObject instance = Instantiate(cubePrefab, new Vector3(x * GRID_DISTANCE, y * GRID_DISTANCE, 0), Quaternion.identity, transform);
-                instance.name = $"ConwaysGameOfLife_{x},{y}";
+                instance.name = $"ConwaysGameOfLife_{x}_{y}";
                 instance.SetActive(Random.Range(0, 2) == 1);
                 grid.Add(key, instance);
             }
@@ -221,9 +236,9 @@ public class ConwaysGameOfLife : MonoBehaviour
     [ContextMenu("Clear Grid")]
     public void ClearGrid()
     {
-        for (int x = 0; x < _rows; ++x)
+        for (int x = 0; x < Rows; ++x)
         {
-            for (int y = 0; y < _columns; ++y)
+            for (int y = 0; y < Columns; ++y)
             {
                 key.Set(x, y);
                 
@@ -235,6 +250,14 @@ public class ConwaysGameOfLife : MonoBehaviour
                 grid.Remove(key);
             }
         }
+        
+        /*//Second clean up to make sure we got everything
+        int count = transform.childCount;
+        for (int i = 0; i < count; ++i)
+        {
+            Destroy(transform.GetChild(i).gameObject);
+        }*/
+        
         grid.Clear();
     }
 }

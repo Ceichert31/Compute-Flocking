@@ -84,6 +84,7 @@ public class ConwaysGameOfLife : MonoBehaviour
     {
         CreateGrid();
     }
+    private int x=0, y=0;
     private void Update()
     {
         if (pauseGame) return;
@@ -94,6 +95,7 @@ public class ConwaysGameOfLife : MonoBehaviour
         if (playTimer > 0) return;
         
         playTimer = TIME_UNTIL_UPDATE;
+        
         GameOfLife();
     }
 
@@ -155,8 +157,23 @@ public class ConwaysGameOfLife : MonoBehaviour
 
                 if (EnableWrapping)
                 {
-                    xIndex %= Columns;
-                    yIndex %= Rows;
+                    if (xIndex < 0)
+                    {
+                        xIndex = Rows - 1;
+                    }
+                    else if (xIndex >= rows)
+                    {
+                        xIndex = 0;
+                    }
+
+                    if (yIndex < 0)
+                    {
+                        yIndex = Columns - 1;
+                    }
+                    else if (yIndex >= columns)
+                    {
+                        yIndex = 0;
+                    }
                 }
                 
                 if (GetValue(xIndex, yIndex))

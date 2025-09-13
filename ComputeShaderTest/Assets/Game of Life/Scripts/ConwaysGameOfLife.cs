@@ -1,36 +1,32 @@
-using System;
 using UnityEngine;
 using System.Collections.Generic;
 using Random = UnityEngine.Random;
 
 public class ConwaysGameOfLife : MonoBehaviour
 {
-
     [Header("Grid Settings")]
-
     public int Rows
     {
-        get => _rows;
+        get => rows;
         set
         {
             CreateGrid();
-            _rows = value;
+            rows = value;
         }
     }
     [SerializeField]
-    private int _rows = 10;
-        
+    private int rows = 10;
     public int Columns
     {
-        get => _columns;
+        get => columns;
         set
         {
             CreateGrid();
-            _columns = value;
+            columns = value;
         }
     }
     [SerializeField]
-    private int _columns = 10;
+    private int columns = 10;
     public bool PauseGame
     {
         get
@@ -44,7 +40,6 @@ public class ConwaysGameOfLife : MonoBehaviour
     }
     [SerializeField]
     private bool pauseGame;
-    
     public bool EnableWrapping
     {
         get
@@ -58,7 +53,6 @@ public class ConwaysGameOfLife : MonoBehaviour
     }
     [SerializeField]
     private bool enableWrapping;
-    
     public float PlaySpeed
     {
         get
@@ -114,9 +108,9 @@ public class ConwaysGameOfLife : MonoBehaviour
     /// </summary>
     private void GameOfLife()
     {
-        for (int x = 0; x < _rows; ++x)
+        for (int x = 0; x < rows; ++x)
         {
-            for (int y = 0; y < _columns; ++y)
+            for (int y = 0; y < columns; ++y)
             {
                 int count = CountNeighbors(x, y);
 
@@ -158,10 +152,13 @@ public class ConwaysGameOfLife : MonoBehaviour
                 int xIndex = x + col, yIndex = y + lin;
                 
                 if (lin == x || col == y) continue;
-                
-                /*xIndex %= _columns;
-                yIndex %= _rows;*/
 
+                if (EnableWrapping)
+                {
+                    xIndex %= Columns;
+                    yIndex %= Rows;
+                }
+                
                 if (GetValue(xIndex, yIndex))
                 {
                     count++;
@@ -236,9 +233,9 @@ public class ConwaysGameOfLife : MonoBehaviour
     [ContextMenu("Clear Grid")]
     public void ClearGrid()
     {
-        for (int x = 0; x < Rows; ++x)
+        /*for (int x = 0; x < oldRowValue; ++x)
         {
-            for (int y = 0; y < Columns; ++y)
+            for (int y = 0; y < oldColumnValue; ++y)
             {
                 key.Set(x, y);
                 
@@ -249,14 +246,14 @@ public class ConwaysGameOfLife : MonoBehaviour
                 DestroyImmediate(value);
                 grid.Remove(key);
             }
-        }
+        }*/
         
-        /*//Second clean up to make sure we got everything
+        //Second clean up to make sure we got everything
         int count = transform.childCount;
         for (int i = 0; i < count; ++i)
         {
             Destroy(transform.GetChild(i).gameObject);
-        }*/
+        }
         
         grid.Clear();
     }

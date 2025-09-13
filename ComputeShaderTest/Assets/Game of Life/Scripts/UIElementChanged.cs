@@ -22,6 +22,10 @@ public class UIElementChanged : MonoBehaviour
    {
       gameOfLife.PauseGame = ctx.Value;
    }
+   public void UpdateEnableWrapping(BoolEvent ctx)
+   {
+      gameOfLife.EnableWrapping = ctx.Value;
+   }
    public void UpdatePlaySpeed(FloatEvent ctx)
    {
       gameOfLife.PlaySpeed = ctx.FloatValue;

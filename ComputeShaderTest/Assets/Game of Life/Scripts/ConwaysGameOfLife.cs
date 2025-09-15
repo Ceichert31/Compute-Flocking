@@ -217,6 +217,8 @@ public class ConwaysGameOfLife : MonoBehaviour
     /// <param name="value">The value we want to set it as</param>
     void SetValue(int x, int y, bool value)
     {
+        key.Set(x, y);
+
         if (!grid.TryGetValue(key, out GameObject cell)) return;
         
         cell.SetActive(value);
@@ -229,7 +231,6 @@ public class ConwaysGameOfLife : MonoBehaviour
     //Function for creating grid
     public void CreateGrid()
     {
-        //transform.position = new (-(Rows / GRID_DISTANCE), -(Columns / GRID_DISTANCE), 0);
         Camera.main.transform.position = new (Rows, Columns, -1 * (Rows + Columns));
         
         //If grid is full, empty before adding more elements
@@ -258,22 +259,6 @@ public class ConwaysGameOfLife : MonoBehaviour
     [ContextMenu("Clear Grid")]
     public void ClearGrid()
     {
-        /*for (int x = 0; x < oldRowValue; ++x)
-        {
-            for (int y = 0; y < oldColumnValue; ++y)
-            {
-                key.Set(x, y);
-                
-                //Check if value exists at key
-                if (!grid.TryGetValue(key, out GameObject value)) continue;
-                
-                //Remove
-                DestroyImmediate(value);
-                grid.Remove(key);
-            }
-        }*/
-        
-        //Second clean up to make sure we got everything
         int count = transform.childCount;
         for (int i = 0; i < count; ++i)
         {

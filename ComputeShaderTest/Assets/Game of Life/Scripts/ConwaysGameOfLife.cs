@@ -131,7 +131,14 @@ public class ConwaysGameOfLife : MonoBehaviour
                 //Dead case
                 else
                 {
-                    SetValue(x, y, count == 3);
+                    if (count == 3)
+                    {
+                        SetValue(x, y, true);
+                    }
+                    else
+                    {
+                        SetValue(x, y, false);
+                    }
                 }
             }
         }
@@ -147,21 +154,22 @@ public class ConwaysGameOfLife : MonoBehaviour
     {
         int count = 0;
         
-        for (int lin = -1; lin <= 1; ++lin)
+        for (int lin = -1; lin <= 1; lin++)
         {
-            for (int col = -1; col <= 1; ++col)
+            for (int col = -1; col <= 1;  col++)
             {
-                int xIndex = x + col, yIndex = y + lin;
-                
-                if (lin == x || col == y) continue;
+                if (lin == 0 && col == 0) continue;
 
+                int xIndex = x + lin;
+                int yIndex = y + col;
+                
                 if (EnableWrapping)
                 {
                     if (xIndex < 0)
                     {
                         xIndex = Rows - 1;
                     }
-                    else if (xIndex >= rows)
+                    else if (xIndex >= Rows)
                     {
                         xIndex = 0;
                     }
@@ -170,7 +178,7 @@ public class ConwaysGameOfLife : MonoBehaviour
                     {
                         yIndex = Columns - 1;
                     }
-                    else if (yIndex >= columns)
+                    else if (yIndex >= Columns)
                     {
                         yIndex = 0;
                     }
@@ -198,7 +206,7 @@ public class ConwaysGameOfLife : MonoBehaviour
         //If it doesn't exsist, return false
         if (!grid.TryGetValue(key, out GameObject cell)) return false;
 
-        return cell.activeInHierarchy;
+        return cell.activeSelf;
     }
 
     /// <summary>

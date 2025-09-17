@@ -36,7 +36,7 @@ namespace MazeGeneration.Scripts
         }
         [SerializeField]
         private int height = 10;
-
+        
         public float UpdateSpeed
         {
             get
@@ -50,12 +50,19 @@ namespace MazeGeneration.Scripts
         }
         [SerializeField]
         private float updateSpeed = 0.3f;
-
-        [SerializeField]
-        private bool completeMaze;
-
+        public bool UseBreadthFirstSearch
+        {
+            get => isBreadthFirst;
+            set
+            {
+                isBreadthFirst = value;
+                ResetMaze();
+            }
+        }
         [SerializeField]
         private bool isBreadthFirst;
+        [SerializeField]
+        private bool completeMaze;
         #endregion
 
         [Header("Maze References")]
@@ -199,6 +206,8 @@ namespace MazeGeneration.Scripts
             }
             mazeMap.Clear();
             rooms.Clear();
+            path.Clear();
+            pathQueue.Clear();
         
             PopulateMaze();
         }

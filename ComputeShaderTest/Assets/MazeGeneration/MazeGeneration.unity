@@ -226,6 +226,7 @@ GameObject:
   - component: {fileID: 212027816}
   - component: {fileID: 212027815}
   - component: {fileID: 212027814}
+  - component: {fileID: 212027817}
   m_Layer: 0
   m_Name: MazeGenerator
   m_TagString: Untagged
@@ -263,6 +264,7 @@ MonoBehaviour:
   width: 20
   height: 20
   updateSpeed: 5
+  isBreadthFirst: 0
   completeMaze: 0
   mazeWallPrefab: {fileID: 4568816144877106358, guid: 1d2f679a2e1bfcdd9aa83d87bd2439c0, type: 3}
 --- !u!114 &212027813
@@ -352,6 +354,34 @@ MonoBehaviour:
       - m_Target: {fileID: 212027813}
         m_TargetAssemblyTypeName: MazeUpdateProperties, Assembly-CSharp
         m_MethodName: UpdateSpeed
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &212027817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212027810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea63d665b8bc7cd40b9dad085d117b43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventChannel: {fileID: 11400000, guid: 603598779f11a12bbbbd7063a02325e9, type: 2}
+  response:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 212027813}
+        m_TargetAssemblyTypeName: MazeUpdateProperties, Assembly-CSharp
+        m_MethodName: UpdateBFS
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -547,7 +577,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1.0
+  m_text: 20
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
   m_sharedMaterial: {fileID: 4889428053498099757, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
@@ -1919,7 +1949,7 @@ MonoBehaviour:
   m_MinValue: 1
   m_MaxValue: 50
   m_WholeNumbers: 1
-  m_Value: 10
+  m_Value: 20
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2384,7 +2414,7 @@ MonoBehaviour:
   sensitivity: 9
   minSensitivity: 1
   maxSensitivity: 15
-  walkSpeed: 45
+  walkSpeed: 65
   advancedSettings: 1
   maxSlopeAngle: 45
   heightOffset: 1.5
@@ -3239,7 +3269,7 @@ MonoBehaviour:
   m_MinValue: 1
   m_MaxValue: 50
   m_WholeNumbers: 1
-  m_Value: 10
+  m_Value: 20
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3691,7 +3721,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Pause
+  m_text: Use Breadth-first search
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
   m_sharedMaterial: {fileID: 4889428053498099757, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
@@ -3718,10 +3748,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
+  m_fontSize: 19
   m_fontSizeBase: 28
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -3956,7 +3986,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1.0
+  m_text: 20
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
   m_sharedMaterial: {fileID: 4889428053498099757, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}

@@ -21,4 +21,8 @@ public class MazeUpdateProperties : MonoBehaviour
     {
         mazeGeneration.Height = (int)ctx.FloatValue;
     }
+    public void UpdateBFS(BoolEvent ctx)
+    {
+        mazeGeneration.UseBreadthFirstSearch = ctx.Value;
+    }
 }

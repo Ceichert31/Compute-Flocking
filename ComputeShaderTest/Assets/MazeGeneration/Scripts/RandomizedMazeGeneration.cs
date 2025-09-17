@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -42,9 +44,17 @@ public class RandomizedMazeGeneration : MonoBehaviour
     
     
     private readonly Stack<Cell> path = new Stack<Cell>();
+
+    private bool canStep;
     private void Start()
     {
         PopulateMaze();
+    }
+
+    [Button("Step")]
+    public void NextStep()
+    {
+        canStep = true;
     }
 
     /// <summary>
@@ -81,6 +91,12 @@ public class RandomizedMazeGeneration : MonoBehaviour
     /// </summary>
     public void CreateMaze()
     {
+
+        StartCoroutine(Step());
+
+    }
+    IEnumerator Step()
+    {
         //Mark top cell as visited
         key.Set(0, 0);
         Cell currentCell = mazeMap[key];
@@ -91,14 +107,24 @@ public class RandomizedMazeGeneration : MonoBehaviour
         //Iterate until we have nothing left to add to stack
         while (path.Count > 0)
         {
+            if (!canStep)
+            {
+                yield return new WaitForSeconds(1.0f);    
+            }
+            else
+            {
+                canStep = false;
+            }
+            
             Cell nextCell = GetRandomNeighbor(currentCell);
-
+            
             //Case where we have a neighbor
             if (nextCell != null)
             {
                 RemoveWalls(currentCell, nextCell);
-                rooms[currentCell.position].SetCurrent(false);
+                //Visually mark current cell as visited
                 rooms[nextCell.position].SetCurrent(true);
+                rooms[currentCell.position].SetCurrent(false);
                 nextCell.isVisited = true;
                 currentCell = nextCell;
                 path.Push(currentCell);
@@ -112,6 +138,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
                     if (path.Count > 0)
                     {
                         currentCell = path.Pop();
+                        rooms[currentCell.position].SetCurrent(false);
                     }
                 }
             }
@@ -128,7 +155,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
         int distY = (int)(previous.position.y - current.position.y);
 
         //Moving up
-        if (distY == 1)
+        if (distY == -1)
         {
             previous.up = false;
             current.down = false;
@@ -136,7 +163,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
             rooms[current.position].bottom.SetActive(false);
         }
         //Moving right
-        if (distX == 1)
+        if (distX == -1)
         {
             previous.right = false;
             current.left = false;
@@ -144,7 +171,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
             rooms[current.position].left.SetActive(false);
         }
         //Moving down
-        if (distY == -1)
+        if (distY == 1)
         {
             previous.down = false;
             current.up = false;
@@ -152,7 +179,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
             rooms[current.position].top.SetActive(false);
         }
         //Moving left
-        if (distX == -1)
+        if (distX == 1)
         {
             previous.left = false;
             current.right = false;

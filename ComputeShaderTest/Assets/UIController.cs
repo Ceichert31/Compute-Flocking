@@ -25,12 +25,16 @@ public class UIController : MonoBehaviour
         if (ctx.Value)
         {
             //Tween menu open
+            DOTween.CompleteAll();
             devMenu.DOAnchorPosY(400, menuOpenTime).SetEase(Ease.OutBack);
+            Cursor.lockState = CursorLockMode.None;
         }
         else
         {
+            DOTween.CompleteAll();
             //Tween menu closed
             devMenu.DOAnchorPosY(-400, menuOpenTime).SetEase(Ease.InOutCubic);
+            Cursor.lockState = CursorLockMode.Locked;
         }
     }
 }

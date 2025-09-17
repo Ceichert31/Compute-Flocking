@@ -1,4 +1,5 @@
 using System;
+using MazeGeneration.Scripts;
 using UnityEngine;
 
 public class MazeUpdateProperties : MonoBehaviour

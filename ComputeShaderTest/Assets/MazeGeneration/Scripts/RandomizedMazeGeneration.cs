@@ -33,8 +33,8 @@ public class RandomizedMazeGeneration : MonoBehaviour
     [SerializeField]
     private int height = 10;
 
-    private readonly Dictionary<Vector2, Cell> mazeMap = new Dictionary<Vector2, Cell>();
-    private readonly Dictionary<Vector2, MazeRoom> rooms = new Dictionary<Vector2, MazeRoom>();
+    private Dictionary<Vector2, Cell> mazeMap = new Dictionary<Vector2, Cell>();
+    private Dictionary<Vector2, MazeRoom> rooms = new Dictionary<Vector2, MazeRoom>();
     private Vector2 key;
     
     [SerializeField]
@@ -52,7 +52,11 @@ public class RandomizedMazeGeneration : MonoBehaviour
     /// </summary>
     private void PopulateMaze()
     {
+        
         mazeMap.Clear();
+        rooms.Clear();
+        mazeMap = new Dictionary<Vector2, Cell>(Width * Height);
+        rooms = new Dictionary<Vector2, MazeRoom>(Width * Height);
 
         for (int x = 0; x < Width; ++x)
         {
@@ -81,6 +85,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
         key.Set(0, 0);
         Cell currentCell = mazeMap[key];
         currentCell.isVisited = true;
+        rooms[currentCell.position].SetCurrent(true);
         path.Push(currentCell);
         
         //Iterate until we have nothing left to add to stack
@@ -92,6 +97,8 @@ public class RandomizedMazeGeneration : MonoBehaviour
             if (nextCell != null)
             {
                 RemoveWalls(currentCell, nextCell);
+                rooms[currentCell.position].SetCurrent(false);
+                rooms[nextCell.position].SetCurrent(true);
                 nextCell.isVisited = true;
                 currentCell = nextCell;
                 path.Push(currentCell);

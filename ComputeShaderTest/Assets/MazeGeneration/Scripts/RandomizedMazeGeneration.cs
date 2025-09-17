@@ -1,15 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using NaughtyAttributes;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class RandomizedMazeGeneration : MonoBehaviour
 {
-    
+    #region Properties
     [Header("Maze Settings")]
-    
     public int Width
     {
         get
@@ -18,6 +18,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
         }
         set
         {
+            ResetMaze();
             width = value;
         }
     }
@@ -32,23 +33,21 @@ public class RandomizedMazeGeneration : MonoBehaviour
         }
         set
         {
+            ResetMaze();
             height = value;
         }
     }
     [SerializeField]
     private int height = 10;
 
-    public float StepSpeed
+    public float UpdateSpeed
     {
-        get => stepSpeed;
-        set
-        {
-            stepSpeed = value;
-            waitForSeconds = new WaitForSeconds(stepSpeed);
-        }
+        get => updateSpeed;
+        set => updateSpeed = value;
     }
     [SerializeField]
-    private float stepSpeed = 0.3f;
+    private float updateSpeed = 0.3f;
+    #endregion
 
     [Header("Maze References")]
     [SerializeField]
@@ -56,31 +55,23 @@ public class RandomizedMazeGeneration : MonoBehaviour
     
     private Dictionary<Vector2, Cell> mazeMap = new Dictionary<Vector2, Cell>();
     private Dictionary<Vector2, MazeRoom> rooms = new Dictionary<Vector2, MazeRoom>();
-    private Vector2 key;
-    
     private readonly Stack<Cell> path = new Stack<Cell>();
-
-    private bool canStep;
-    private WaitForSeconds waitForSeconds;
+    
+    private Cell currentCell;
+    private Vector2 key;
+    private float timer;
+    
+    private const float STEP_DURATION = 10f;
     private void Start()
     {
-        waitForSeconds = new WaitForSeconds(stepSpeed);
         PopulateMaze();
+        timer = STEP_DURATION;
     }
-
-    [Button("Step")]
-    public void NextStep()
-    {
-        canStep = true;
-    }
-
     /// <summary>
-    /// Fill the hashmap with values
+    /// Fills the maze with data and rooms
     /// </summary>
     private void PopulateMaze()
     {
-        mazeMap.Clear();
-        rooms.Clear();
         mazeMap = new Dictionary<Vector2, Cell>(Width * Height);
         rooms = new Dictionary<Vector2, MazeRoom>(Width * Height);
 
@@ -94,67 +85,78 @@ public class RandomizedMazeGeneration : MonoBehaviour
                     position = new Vector2(x, y)
                 };
 
-                GameObject instance = Instantiate(mazeWallPrefab, new Vector3(x, 0 , y), Quaternion.identity, transform);
+                GameObject instance = Instantiate(mazeWallPrefab, new Vector3(x * mazeWallPrefab.transform.localScale.x, 0 , y * mazeWallPrefab.transform.localScale.y), Quaternion.identity, transform);
                 rooms[key] = instance.GetComponent<MazeRoom>();
             }
         }
-        
-        CreateMaze();
+        InitializeMaze();
     }
-
     /// <summary>
-    /// Uses Depth-first search to navigate and generate a randomized maze
+    /// Pushes the starting point (0,0) to the path
     /// </summary>
-    public void CreateMaze()
-    {
-
-        StartCoroutine(Step());
-
-    }
-    IEnumerator Step()
+    private void InitializeMaze()
     {
         //Mark top cell as visited
         key.Set(0, 0);
-        Cell currentCell = mazeMap[key];
+        currentCell = mazeMap[key];
         currentCell.isVisited = true;
         rooms[currentCell.position].SetCurrent(true);
-        path.Push(currentCell);
         
-        //Iterate until we have nothing left to add to stack
-        while (path.Count > 0)
+        //Add start cell to path
+        path.Push(currentCell);
+    }
+    private void Update()
+    {
+        timer -= Time.deltaTime * UpdateSpeed;
+        if (timer <= 0)
         {
-            if (!canStep)
-            {
-                yield return waitForSeconds;    
-            }
-            else
-            {
-                canStep = false;
-            }
-            
-            Cell nextCell = GetRandomNeighbor(currentCell);
-            
-            //Case where we have a neighbor
-            if (nextCell != null)
-            {
-                RemoveWalls(currentCell, nextCell);
-                //Visually mark current cell as visited
-                rooms[nextCell.position].SetCurrent(true);
-                rooms[currentCell.position].SetCurrent(false);
-                nextCell.isVisited = true;
-                currentCell = nextCell;
-                path.Push(currentCell);
-            }
-            //Backtracking
-            else
-            {
-                //If path still has values, remove latest value
-                if (path.Count <= 0) continue;
-                currentCell = path.Pop();
-                rooms[currentCell.position].SetCurrent(false);
-            }
+            timer = STEP_DURATION;
+            MazeStep();
         }
     }
+    /// <summary>
+    /// Uses Depth-first search to navigate and generate a randomized maze
+    /// </summary>
+    private void MazeStep()
+    {
+        Cell nextCell = GetRandomNeighbor(currentCell);
+            
+        //Case where we have a neighbor
+        if (nextCell != null)
+        {
+            RemoveWalls(currentCell, nextCell);
+            //Visually mark current cell as visited
+            rooms[nextCell.position].SetCurrent(true);
+            rooms[currentCell.position].SetCurrent(false);
+            nextCell.isVisited = true;
+            currentCell = nextCell;
+            path.Push(currentCell);
+        }
+        //Backtracking
+        else
+        {
+            //If path still has values, remove latest value
+            if (path.Count <= 0) return;
+            currentCell = path.Pop();
+            rooms[currentCell.position].SetCurrent(false);
+        }
+    }
+    /// <summary>
+    /// Destroys the old maze and generates a new one with updated settings
+    /// </summary>
+    private void ResetMaze()
+    {
+        int childCount = transform.childCount;
+        for (int i = 0; i < childCount; ++i)
+        {
+            Destroy(transform.GetChild(i).gameObject);
+        }
+        mazeMap.Clear();
+        rooms.Clear();
+        
+        PopulateMaze();
+    }
+    #region Helper Methods
     /// <summary>
     /// Removes a wall between an old cell and the new cell
     /// </summary>
@@ -263,6 +265,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
         return x > -1 && x < Width
             && y > -1 && y < Height;
     }
+    #endregion
 }
 
 class Cell

@@ -7,17 +7,10 @@ public class MazeRoom : MonoBehaviour
     public GameObject bottom;
     public GameObject left;
     [SerializeField]
-    private GameObject floor;
+    private MeshRenderer floor;
 
     public void SetCurrent(bool isCurrent)
     {
-        if (isCurrent)
-        {
-            floor.GetComponent<MeshRenderer>().material.color = Color.green;
-        }
-        else
-        {
-            floor.GetComponent<MeshRenderer>().material.color = Color.black;
-        }
+        floor.material.color = isCurrent ? Color.green : Color.black;
     }
 }

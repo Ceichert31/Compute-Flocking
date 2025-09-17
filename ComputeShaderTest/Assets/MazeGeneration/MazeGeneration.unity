@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 212006400}
   - component: {fileID: 212006399}
   - component: {fileID: 212006398}
+  - component: {fileID: 212006401}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -198,6 +199,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &212006401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212006397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae17d8b0a65aff0ba94bbf22b7a06102, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultMode: 1
 --- !u!1 &212027810
 GameObject:
   m_ObjectHideFlags: 0
@@ -246,9 +260,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cc068207948334179cb6ffec0df71c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 10
-  height: 10
-  stepSpeed: 0.1
+  width: 20
+  height: 20
+  updateDelay: 1
   mazeWallPrefab: {fileID: 4568816144877106358, guid: 1d2f679a2e1bfcdd9aa83d87bd2439c0, type: 3}
 --- !u!114 &212027813
 MonoBehaviour:
@@ -2579,7 +2593,7 @@ Transform:
   m_GameObject: {fileID: 2705333061983180381}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 7.56, z: -4.3100004}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

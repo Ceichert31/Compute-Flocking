@@ -1158,7 +1158,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public MovementActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Fire => m_Wrapper.m_Movement_Fire;
         public InputAction @Look => m_Wrapper.m_Movement_Look;
-        public InputAction @Move => m_Wrapper.m_Movement_Move;
+        public InputAction @Move =>  m_Wrapper.m_Movement_Move;
         public InputAction @Dash => m_Wrapper.m_Movement_Dash;
         public InputAction @RightClick => m_Wrapper.m_Movement_RightClick;
         public InputActionMap Get() { return m_Wrapper.m_Movement; }

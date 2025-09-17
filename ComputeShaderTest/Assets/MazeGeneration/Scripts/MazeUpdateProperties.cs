@@ -10,7 +10,7 @@ public class MazeUpdateProperties : MonoBehaviour
     }
     public void UpdateSpeed(FloatEvent ctx)
     {
-        mazeGeneration.StepSpeed = ctx.FloatValue;
+        mazeGeneration.UpdateSpeed = ctx.FloatValue;
     }
     public void UpdateWidth(FloatEvent ctx)
     {

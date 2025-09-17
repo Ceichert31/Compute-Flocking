@@ -34,7 +34,12 @@ public class RandomizedMazeGeneration : MonoBehaviour
     private int height = 10;
 
     private readonly Dictionary<Vector2, Cell> mazeMap = new Dictionary<Vector2, Cell>();
+    private readonly Dictionary<Vector2, MazeRoom> rooms = new Dictionary<Vector2, MazeRoom>();
     private Vector2 key;
+    
+    [SerializeField]
+    private GameObject mazeWallPrefab;
+    
     
     private readonly Stack<Cell> path = new Stack<Cell>();
     private void Start()
@@ -58,6 +63,9 @@ public class RandomizedMazeGeneration : MonoBehaviour
                 {
                     position = new Vector2(x, y)
                 };
+
+                GameObject instance = Instantiate(mazeWallPrefab, new Vector3(x, 0 , y), Quaternion.identity, transform);
+                rooms[key] = instance.GetComponent<MazeRoom>();
             }
         }
         
@@ -72,29 +80,33 @@ public class RandomizedMazeGeneration : MonoBehaviour
         //Mark top cell as visited
         key.Set(0, 0);
         Cell currentCell = mazeMap[key];
+        currentCell.isVisited = true;
         path.Push(currentCell);
         
         //Iterate until we have nothing left to add to stack
         while (path.Count > 0)
         {
-            //Mark as visited and add to stack
-            currentCell.isVisited = true;
-            path.Push(currentCell);
-            
-            //Cache previous cell and get new cell
-            Cell previousCell = currentCell;
-            currentCell = GetRandomNeighbor(previousCell);
-            
+            Cell nextCell = GetRandomNeighbor(currentCell);
+
             //Case where we have a neighbor
-            if (currentCell != null)
+            if (nextCell != null)
             {
-                RemoveWalls(previousCell, currentCell);
-                currentCell.isVisited = true;
+                RemoveWalls(currentCell, nextCell);
+                nextCell.isVisited = true;
+                currentCell = nextCell;
+                path.Push(currentCell);
             }
             //Backtracking
             else
             {
-                currentCell = path.Pop();
+                if (path.Count > 0)
+                {
+                    path.Pop();
+                    if (path.Count > 0)
+                    {
+                        currentCell = path.Pop();
+                    }
+                }
             }
         }
     }
@@ -113,24 +125,32 @@ public class RandomizedMazeGeneration : MonoBehaviour
         {
             previous.up = false;
             current.down = false;
+            rooms[previous.position].top.SetActive(false);
+            rooms[current.position].bottom.SetActive(false);
         }
         //Moving right
         if (distX == 1)
         {
             previous.right = false;
             current.left = false;
+            rooms[previous.position].right.SetActive(false);
+            rooms[current.position].left.SetActive(false);
         }
         //Moving down
         if (distY == -1)
         {
             previous.down = false;
             current.up = false;
+            rooms[previous.position].bottom.SetActive(false);
+            rooms[current.position].top.SetActive(false);
         }
         //Moving left
         if (distX == -1)
         {
             previous.left = false;
             current.right = false;
+            rooms[previous.position].left.SetActive(false);
+            rooms[current.position].right.SetActive(false);
         }
     }
 
@@ -148,21 +168,33 @@ public class RandomizedMazeGeneration : MonoBehaviour
         Vector2 left = new Vector2(current.position.x - 1, current.position.y);
 
         //Add all visitable neighbors to list
-        if (!mazeMap[up].isVisited && mazeMap[up].down)
+        if (IsInBounds(up.x, up.y))
         {
-            neighbors.Add(mazeMap[up]);
-        } 
-        if (!mazeMap[right].isVisited && mazeMap[right].left)
-        {
-            neighbors.Add(mazeMap[right]);
+            if (!mazeMap[up].isVisited && mazeMap[up].down)
+            {
+                neighbors.Add(mazeMap[up]);
+            } 
         }
-        if (!mazeMap[down].isVisited && mazeMap[down].up)
+        if (IsInBounds(right.x, right.y))
         {
-            neighbors.Add(mazeMap[down]);
+            if (!mazeMap[right].isVisited && mazeMap[right].left)
+            {
+                neighbors.Add(mazeMap[right]);
+            }
         }
-        if (!mazeMap[left].isVisited && mazeMap[left].right)
+        if (IsInBounds(down.x, down.y))
         {
-            neighbors.Add(mazeMap[left]);
+            if (!mazeMap[down].isVisited && mazeMap[down].up)
+            {
+                neighbors.Add(mazeMap[down]);
+            }
+        }
+        if (IsInBounds(left.x, left.y))
+        {
+            if (!mazeMap[left].isVisited && mazeMap[left].right)
+            {
+                neighbors.Add(mazeMap[left]);
+            }
         }
 
         if (neighbors.Count == 0)
@@ -173,6 +205,18 @@ public class RandomizedMazeGeneration : MonoBehaviour
         //Get a random neighbor
         int index = Random.Range(0, neighbors.Count);
         return neighbors[index];
+    }
+
+    /// <summary>
+    /// Checks whether a xy coordinate is within the matrix
+    /// </summary>
+    /// <param name="x">The X coordinate</param>
+    /// <param name="y">The Y coordinate</param>
+    /// <returns>True if within bounds</returns>
+    private bool IsInBounds(float x, float y)
+    {
+        return x > -1 && x < Width
+            && y > -1 && y < Height;
     }
 }
 

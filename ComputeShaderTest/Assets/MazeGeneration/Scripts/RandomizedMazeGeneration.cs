@@ -33,15 +33,18 @@ public class RandomizedMazeGeneration : MonoBehaviour
     [SerializeField]
     private int height = 10;
 
-    private Dictionary<Vector2, Cell> mazeMap = new Dictionary<Vector2, Cell>();
+    private readonly Dictionary<Vector2, Cell> mazeMap = new Dictionary<Vector2, Cell>();
     private Vector2 key;
     
-    private Stack<Cell> path = new Stack<Cell>();
+    private readonly Stack<Cell> path = new Stack<Cell>();
     private void Start()
     {
         PopulateMaze();
     }
 
+    /// <summary>
+    /// Fill the hashmap with values
+    /// </summary>
     private void PopulateMaze()
     {
         mazeMap.Clear();
@@ -57,8 +60,13 @@ public class RandomizedMazeGeneration : MonoBehaviour
                 };
             }
         }
+        
+        CreateMaze();
     }
 
+    /// <summary>
+    /// Uses Depth-first search to navigate and generate a randomized maze
+    /// </summary>
     public void CreateMaze()
     {
         //Mark top cell as visited
@@ -73,40 +81,14 @@ public class RandomizedMazeGeneration : MonoBehaviour
             currentCell.isVisited = true;
             path.Push(currentCell);
             
-            List<Cell> neighbors = new List<Cell>();
-
-            Vector2 up = new Vector2(key.x, key.y + 1);
-            Vector2 right = new Vector2(key.x + 1, key.y);
-            Vector2 down = new Vector2(key.x, key.y - 1);
-            Vector2 left = new Vector2(key.x - 1, key.y);
-
-            //Add all visitable neighbors to list
-            if (!mazeMap[up].isVisited && mazeMap[up].down)
-            {
-                neighbors.Add(mazeMap[up]);
-            } 
-            if (!mazeMap[right].isVisited && mazeMap[right].left)
-            {
-                neighbors.Add(mazeMap[right]);
-            }
-            if (!mazeMap[down].isVisited && mazeMap[down].up)
-            {
-                neighbors.Add(mazeMap[down]);
-            }
-            if (!mazeMap[left].isVisited && mazeMap[left].right)
-            {
-                neighbors.Add(mazeMap[left]);
-            }
+            //Cache previous cell and get new cell
+            Cell previousCell = currentCell;
+            currentCell = GetRandomNeighbor(previousCell);
             
             //Case where we have a neighbor
-            if (neighbors.Count > 0)
+            if (currentCell != null)
             {
-                //Get a random neighbor
-                int index = Random.Range(0, neighbors.Count);
-                Cell oldCell = currentCell;
-                currentCell = neighbors[index];
-                
-                RemoveWalls(oldCell, currentCell);
+                RemoveWalls(previousCell, currentCell);
                 currentCell.isVisited = true;
             }
             //Backtracking
@@ -116,35 +98,39 @@ public class RandomizedMazeGeneration : MonoBehaviour
             }
         }
     }
-    
-    private void RemoveWalls(Cell current, Cell next)
+    /// <summary>
+    /// Removes a wall between an old cell and the new cell
+    /// </summary>
+    /// <param name="previous">The previous cell</param>
+    /// <param name="current">The new current cell</param>
+    private void RemoveWalls(Cell previous, Cell current)
     {
-        int distX = (int)(current.position.x - next.position.x);
-        int distY = (int)(current.position.y - next.position.y);
+        int distX = (int)(previous.position.x - current.position.x);
+        int distY = (int)(previous.position.y - current.position.y);
 
         //Moving up
         if (distY == 1)
         {
-            current.up = false;
-            next.down = false;
+            previous.up = false;
+            current.down = false;
         }
         //Moving right
         if (distX == 1)
         {
-            current.right = false;
-            next.left = false;
+            previous.right = false;
+            current.left = false;
         }
         //Moving down
         if (distY == -1)
         {
-            current.down = false;
-            next.up = false;
+            previous.down = false;
+            current.up = false;
         }
         //Moving left
         if (distX == -1)
         {
-            current.left = false;
-            next.right = false;
+            previous.left = false;
+            current.right = false;
         }
     }
 
@@ -152,36 +138,31 @@ public class RandomizedMazeGeneration : MonoBehaviour
     /// Gets all neighbors, and chooses one randomly
     /// </summary>
     /// <returns></returns>
-    private Cell GetNeighbors(int x, int y)
+    private Cell GetRandomNeighbor(Cell current)
     {
         List<Cell> neighbors = new List<Cell>();
 
-        Vector2 up = new Vector2(x, y + 1);
-        Vector2 down = new Vector2(x, y - 1);
-        
-        //Up
-        if (!mazeMap[up].vertical.wallDestroyed && !mazeMap[up].vertical.isVisited)
+        Vector2 up = new Vector2(current.position.x, current.position.y + 1);
+        Vector2 right = new Vector2(current.position.x + 1, current.position.y);
+        Vector2 down = new Vector2(current.position.x, current.position.y - 1);
+        Vector2 left = new Vector2(current.position.x - 1, current.position.y);
+
+        //Add all visitable neighbors to list
+        if (!mazeMap[up].isVisited && mazeMap[up].down)
         {
             neighbors.Add(mazeMap[up]);
-            mazeMap[up].position = up;
-        }
-        //Right
-        if (!mazeMap[up].horizontal.wallDestroyed && !mazeMap[up].horizontal.isVisited)
+        } 
+        if (!mazeMap[right].isVisited && mazeMap[right].left)
         {
-            neighbors.Add(mazeMap[up]);
-            mazeMap[up].position = up;
+            neighbors.Add(mazeMap[right]);
         }
-        //Down
-        if (!mazeMap[down].vertical.wallDestroyed && !mazeMap[down].vertical.isVisited)
+        if (!mazeMap[down].isVisited && mazeMap[down].up)
         {
             neighbors.Add(mazeMap[down]);
-            mazeMap[up].position = down;
         }
-        //Left
-        if (!mazeMap[down].horizontal.wallDestroyed && !mazeMap[down].horizontal.isVisited)
+        if (!mazeMap[left].isVisited && mazeMap[left].right)
         {
-            neighbors.Add(mazeMap[down]);
-            mazeMap[up].position = down;
+            neighbors.Add(mazeMap[left]);
         }
 
         if (neighbors.Count == 0)
@@ -189,6 +170,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
             return null;
         }
         
+        //Get a random neighbor
         int index = Random.Range(0, neighbors.Count);
         return neighbors[index];
     }

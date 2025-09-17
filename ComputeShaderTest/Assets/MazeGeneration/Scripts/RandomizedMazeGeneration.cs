@@ -18,8 +18,8 @@ public class RandomizedMazeGeneration : MonoBehaviour
         }
         set
         {
-            ResetMaze();
             width = value;
+            ResetMaze();
         }
     }
     [SerializeField]
@@ -33,8 +33,8 @@ public class RandomizedMazeGeneration : MonoBehaviour
         }
         set
         {
-            ResetMaze();
             height = value;
+            ResetMaze();
         }
     }
     [SerializeField]
@@ -47,6 +47,10 @@ public class RandomizedMazeGeneration : MonoBehaviour
     }
     [SerializeField]
     private float updateSpeed = 0.3f;
+
+    [SerializeField]
+    private bool completeMaze;
+    
     #endregion
 
     [Header("Maze References")]
@@ -60,6 +64,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
     private Cell currentCell;
     private Vector2 key;
     private float timer;
+    private bool isResetingMaze;
     
     private const float STEP_DURATION = 10f;
     private void Start()
@@ -104,15 +109,28 @@ public class RandomizedMazeGeneration : MonoBehaviour
         
         //Add start cell to path
         path.Push(currentCell);
+        isResetingMaze = false;
     }
     private void Update()
     {
+        if (completeMaze)
+        {
+            MazeStep();
+        }
+     
+        //Update every step
+        if (isResetingMaze) return;
         timer -= Time.deltaTime * UpdateSpeed;
         if (timer <= 0)
         {
             timer = STEP_DURATION;
             MazeStep();
         }
+
+        //Mark end point
+        if (path.Count != 0) return;
+        key.Set(Width - 1, Height - 1);
+        rooms[key].SetEnd();
     }
     /// <summary>
     /// Uses Depth-first search to navigate and generate a randomized maze
@@ -138,7 +156,10 @@ public class RandomizedMazeGeneration : MonoBehaviour
             //If path still has values, remove latest value
             if (path.Count <= 0) return;
             currentCell = path.Pop();
-            rooms[currentCell.position].SetCurrent(false);
+            if (IsInBounds(currentCell.position.x, currentCell.position.y))
+            {
+                rooms[currentCell.position].SetCurrent(false);
+            }
         }
     }
     /// <summary>
@@ -146,6 +167,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
     /// </summary>
     private void ResetMaze()
     {
+        isResetingMaze = true;
         int childCount = transform.childCount;
         for (int i = 0; i < childCount; ++i)
         {

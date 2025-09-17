@@ -262,7 +262,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 20
   height: 20
-  updateDelay: 1
+  updateSpeed: 5
+  completeMaze: 0
   mazeWallPrefab: {fileID: 4568816144877106358, guid: 1d2f679a2e1bfcdd9aa83d87bd2439c0, type: 3}
 --- !u!114 &212027813
 MonoBehaviour:
@@ -288,7 +289,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80323b2856faeeb4283df8843f8e458b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  eventChannel: {fileID: 11400000, guid: d87e99e2e21b834dc831b7ba66975f44, type: 2}
+  eventChannel: {fileID: 11400000, guid: c8bb50e03a3d95e60bd3bdf00cb10e82, type: 2}
   response:
     m_PersistentCalls:
       m_Calls:
@@ -316,7 +317,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80323b2856faeeb4283df8843f8e458b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  eventChannel: {fileID: 11400000, guid: c8bb50e03a3d95e60bd3bdf00cb10e82, type: 2}
+  eventChannel: {fileID: 11400000, guid: d87e99e2e21b834dc831b7ba66975f44, type: 2}
   response:
     m_PersistentCalls:
       m_Calls:
@@ -812,7 +813,7 @@ GameObject:
   - component: {fileID: 9140268531966166988}
   - component: {fileID: 6695736802597320473}
   m_Layer: 5
-  m_Name: RowCount
+  m_Name: Width
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1044,7 +1045,7 @@ GameObject:
   - component: {fileID: 997023111292256020}
   - component: {fileID: 1213166601160928227}
   m_Layer: 5
-  m_Name: ColumnCount
+  m_Name: Height
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1884,7 +1885,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1935,7 +1936,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1967,7 +1968,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1926462662785777700}
   m_Direction: 0
   m_MinValue: 1
-  m_MaxValue: 500
+  m_MaxValue: 1000
   m_WholeNumbers: 0
   m_Value: 5
   m_OnValueChanged:
@@ -2967,7 +2968,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Row Count
+  m_text: Width
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
   m_sharedMaterial: {fileID: 4889428053498099757, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
@@ -3204,7 +3205,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -3526,7 +3527,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Column Count
+  m_text: Height
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}
   m_sharedMaterial: {fileID: 4889428053498099757, guid: 7822eb4b4ae5a3b41b6b32cb6e68bad8, type: 2}

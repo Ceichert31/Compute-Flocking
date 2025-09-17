@@ -13,4 +13,8 @@ public class MazeRoom : MonoBehaviour
     {
         floor.material.color = isCurrent ? Color.green : Color.black;
     }
+    public void SetEnd()
+    {
+        floor.material.color = Color.red;
+    }
 }

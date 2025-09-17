@@ -13,7 +13,7 @@ public class MazeRoom : MonoBehaviour
     {
         if (isCurrent)
         {
-            floor.GetComponent<MeshRenderer>().material.color = Color.red;
+            floor.GetComponent<MeshRenderer>().material.color = Color.green;
         }
         else
         {

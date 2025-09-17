@@ -7,6 +7,9 @@ using Random = UnityEngine.Random;
 
 public class RandomizedMazeGeneration : MonoBehaviour
 {
+    
+    [Header("Maze Settings")]
+    
     public int Width
     {
         get
@@ -35,19 +38,33 @@ public class RandomizedMazeGeneration : MonoBehaviour
     [SerializeField]
     private int height = 10;
 
+    public float StepSpeed
+    {
+        get => stepSpeed;
+        set
+        {
+            stepSpeed = value;
+            waitForSeconds = new WaitForSeconds(stepSpeed);
+        }
+    }
+    [SerializeField]
+    private float stepSpeed = 0.3f;
+
+    [Header("Maze References")]
+    [SerializeField]
+    private GameObject mazeWallPrefab;
+    
     private Dictionary<Vector2, Cell> mazeMap = new Dictionary<Vector2, Cell>();
     private Dictionary<Vector2, MazeRoom> rooms = new Dictionary<Vector2, MazeRoom>();
     private Vector2 key;
     
-    [SerializeField]
-    private GameObject mazeWallPrefab;
-    
-    
     private readonly Stack<Cell> path = new Stack<Cell>();
 
     private bool canStep;
+    private WaitForSeconds waitForSeconds;
     private void Start()
     {
+        waitForSeconds = new WaitForSeconds(stepSpeed);
         PopulateMaze();
     }
 
@@ -62,7 +79,6 @@ public class RandomizedMazeGeneration : MonoBehaviour
     /// </summary>
     private void PopulateMaze()
     {
-        
         mazeMap.Clear();
         rooms.Clear();
         mazeMap = new Dictionary<Vector2, Cell>(Width * Height);
@@ -109,7 +125,7 @@ public class RandomizedMazeGeneration : MonoBehaviour
         {
             if (!canStep)
             {
-                yield return new WaitForSeconds(1.0f);    
+                yield return waitForSeconds;    
             }
             else
             {
@@ -132,15 +148,10 @@ public class RandomizedMazeGeneration : MonoBehaviour
             //Backtracking
             else
             {
-                if (path.Count > 0)
-                {
-                    path.Pop();
-                    if (path.Count > 0)
-                    {
-                        currentCell = path.Pop();
-                        rooms[currentCell.position].SetCurrent(false);
-                    }
-                }
+                //If path still has values, remove latest value
+                if (path.Count <= 0) continue;
+                currentCell = path.Pop();
+                rooms[currentCell.position].SetCurrent(false);
             }
         }
     }
